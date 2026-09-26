@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import DemoLimiter, app, chat_history, chat_locks, limiter, runs
+from app.registry import RegistryResponseError
 from app.schemas import (
     AssessmentMode,
     AssessmentReport,
@@ -151,3 +152,32 @@ def test_report_chat_rejects_missing_run_and_oversized_message() -> None:
         json={"message": "x" * 501},
     )
     assert invalid.status_code == 422
+
+
+def test_prepared_demo_replays_when_offline_registry_is_unavailable(
+    monkeypatch,
+) -> None:
+    async def registry_unavailable(*_args, **_kwargs):
+        raise RegistryResponseError("Registry returned HTTP 403")
+
+    monkeypatch.setattr(
+        "app.main.AssessmentService.assess",
+        registry_unavailable,
+    )
+    limiter._requests.clear()
+    response = client.post(
+        "/api/v1/assess",
+        json={"nct_id": "NCT06860815", "mode": "prospective"},
+    )
+
+    assert response.status_code == 200
+    report = response.json()
+    assert report["trial"]["nct_id"] == "NCT06860815"
+    assert report["trial"]["cache_hit"] is True
+    assert report["release_state"] == "full"
+    assert report["usage"]["model_calls"] == 0
+    assert report["trace"][0]["stage"] == "checked_demo_replay"
+    assert any(
+        "reviewed replay" in limitation.lower()
+        for limitation in report["limitations"]
+    )

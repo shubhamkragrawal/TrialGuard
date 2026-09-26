@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import uuid
 from collections import defaultdict, deque
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -25,7 +26,13 @@ from app.observability import (
 )
 from app.orchestration import AssessmentService
 from app.registry import RegistryError
-from app.schemas import AssessmentReport, AssessRequest, ChatRequest
+from app.schemas import (
+    AssessmentReport,
+    AssessRequest,
+    ChatRequest,
+    TraceEvent,
+    UsageSummary,
+)
 from eval.run_eval import run_all, summarize
 
 settings = Settings.from_env()
@@ -46,6 +53,7 @@ app = FastAPI(
 )
 app.mount("/static", StaticFiles(directory=Path("app/static")), name="static")
 templates = Jinja2Templates(directory=Path("app/templates"))
+DEMO_REPORTS_DIR = Path("app/demo_reports")
 
 
 class DemoLimiter:
@@ -188,6 +196,20 @@ async def assess(request: Request):
             status_code=504,
         )
     except RegistryError as exc:
+        fallback_report = (
+            _checked_demo_report(assessment_request)
+            if not settings.bedrock_ready
+            else None
+        )
+        if fallback_report is not None:
+            _remember(fallback_report)
+            _publish_report_event(fallback_report)
+            if wants_json:
+                return JSONResponse(fallback_report.model_dump(mode="json"))
+            return RedirectResponse(
+                f"/runs/{fallback_report.run_id}",
+                status_code=303,
+            )
         if wants_json:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
         return templates.TemplateResponse(
@@ -354,6 +376,53 @@ def _remember(report: AssessmentReport) -> None:
         runs.pop(forgotten_run_id)
         chat_history.pop(forgotten_run_id, None)
         chat_locks.pop(forgotten_run_id, None)
+
+
+def _checked_demo_report(request: AssessRequest) -> AssessmentReport | None:
+    """Load a reviewed public-data replay when a demo host cannot reach the registry."""
+
+    path = DEMO_REPORTS_DIR / f"{request.nct_id}.json"
+    if not path.is_file():
+        return None
+    try:
+        frozen = AssessmentReport.model_validate_json(
+            path.read_text(encoding="utf-8")
+        )
+    except (OSError, ValidationError):
+        return None
+
+    replay_limitation = (
+        "Registry retrieval was unavailable on this host; this is a reviewed "
+        "replay of public registry data, not a new registry or model run."
+    )
+    return frozen.model_copy(
+        update={
+            "run_id": uuid.uuid4().hex[:12],
+            "trial": frozen.trial.model_copy(update={"cache_hit": True}),
+            "trace": [
+                TraceEvent(
+                    stage="checked_demo_replay",
+                    status="passed",
+                    cache_hit=True,
+                    evidence_ids=[
+                        item.evidence_id for item in frozen.precedents
+                    ],
+                    message=(
+                        "Reviewed public-data replay used because registry "
+                        "retrieval was unavailable."
+                    ),
+                )
+            ],
+            "usage": UsageSummary(
+                pricing_basis="Reviewed checked-demo replay; no model call."
+            ),
+            "limitations": [
+                *frozen.limitations,
+                replay_limitation,
+            ],
+            "created_at": datetime.now(timezone.utc),
+        }
+    )
 
 
 def _publish_report_event(report: AssessmentReport) -> None:

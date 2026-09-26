@@ -41,7 +41,17 @@ To deploy:
 
 The default service makes no Bedrock calls and therefore needs no AWS identity.
 It still depends on outbound HTTPS access to ClinicalTrials.gov, so verify one
-uncached NCT ID from the deployed service.
+uncached NCT ID from the deployed service. If the registry rejects the host's
+outbound IP, the application can replay reviewed public-data reports for
+`NCT06860815` and `NCT06513364`. Those reports are marked as cached replays,
+record zero model calls, and retain their original source-retrieval timestamp.
+Other NCT IDs correctly return a registry-unavailable error rather than
+silently fabricating a report.
+
+The current free service is
+[trialguard-5erc.onrender.com](https://trialguard-5erc.onrender.com/). At the
+time of deployment, its health and runtime endpoints passed, while an uncached
+ClinicalTrials.gov request returned HTTP 403.
 
 ### Enabling live Bedrock on Render
 

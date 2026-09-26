@@ -99,7 +99,13 @@ class ClinicalTrialsClient:
             base_url=base_url,
             timeout=httpx.Timeout(timeout),
             follow_redirects=False,
-            headers={"User-Agent": "TrialGuard/1.0"},
+            headers={
+                "Accept": "application/json",
+                "User-Agent": (
+                    "TrialGuard/1.0 "
+                    "(+https://github.com/shubhamkragrawal/TrialGuard)"
+                ),
+            },
         )
         self._page_size = page_size
         self._max_records = max_records

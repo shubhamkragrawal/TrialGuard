@@ -8,7 +8,9 @@
 
 **Static fallback:** [shubhamkragrawal.github.io/TrialGuard](https://shubhamkragrawal.github.io/TrialGuard/)
 
-**Temporary live application:** [insight-holding-bush-oclc.trycloudflare.com](https://insight-holding-bush-oclc.trycloudflare.com/)
+**Temporary live application:** [commerce-terminal-contamination-chosen.trycloudflare.com](https://commerce-terminal-contamination-chosen.trycloudflare.com/)
+
+**Durable checked fallback:** [trialguard-5erc.onrender.com](https://trialguard-5erc.onrender.com/)
 
 **AWS Region:** `us-east-1`
 
@@ -26,10 +28,10 @@
 | Bedrock managed guardrail | Created, configured, and live-tested |
 | Native Bedrock structured output | Complete and live-tested |
 | Public interactive URL | Online through a temporary Cloudflare tunnel |
-| Durable Render URL | Ready to deploy; safe Blueprint defaults to checked-demo mode |
+| Durable Render URL | Deployed; prepared reports replay when registry access is blocked |
 | CloudWatch metrics and logs | Complete and receiving metadata-only events |
 | CloudWatch dashboard and alarms | Created |
-| Automated tests | 79/79 passing |
+| Automated tests | 80/80 passing |
 | Fixed evaluation suite | 7/7 expected behaviors matched |
 | Credential scan | Clean; no credential material is tracked |
 | Editable slide deck | Complete |
@@ -78,11 +80,16 @@ and product narrative but does not accept arbitrary NCT IDs or invoke Bedrock.
 
 ### Render deployment
 
-`render.yaml` defines a free Docker web service in Render's Virginia region.
-Its safe default retrieves live registry data but uses checked-demo generation,
-because no temporary AWS workshop credentials may be copied to a third-party
-host. Live Bedrock on Render requires a durable, revocable, least-privilege AWS
-identity stored only in Render's secret settings.
+`render.yaml` defines a free Docker web service. The deployed service is
+[trialguard-5erc.onrender.com](https://trialguard-5erc.onrender.com/). Its safe
+default makes no Bedrock call, because no temporary AWS workshop credentials
+may be copied to a third-party host.
+
+The deployment and runtime health checks pass. ClinicalTrials.gov currently
+returns HTTP 403 to the Render instance, so the application visibly replays
+reviewed public-data reports for `NCT06860815` and `NCT06513364`. Other IDs
+return a registry-unavailable error. Live Bedrock on Render requires a durable,
+revocable, least-privilege AWS identity stored only in Render's secret settings.
 
 ## 4. End-to-end workflow
 
@@ -210,7 +217,7 @@ collector is required for this demo.
 
 Latest release checks:
 
-- `79 passed` from the full pytest suite.
+- `80 passed` from the full pytest suite.
 - Ruff reports all checks passed.
 - All seven synthetic fixed evaluations match their expected release states.
 - `git diff --check` reports no whitespace errors.
@@ -304,11 +311,10 @@ architecture diagram, verification, cost evidence, constraints, and next steps.
 
 For the presentation window:
 
-1. Complete the Render deployment and verify its public URL.
-2. Keep the live Bedrock tunnel as the interactive presentation URL unless a
+1. Keep the live Bedrock tunnel as the interactive presentation URL unless a
    durable Render AWS identity is available.
-3. Record a two-to-three-minute backup demo video.
-4. Update the final slide and README with the selected durable URL.
+2. Record a two-to-three-minute backup demo video.
+3. Update the final slide with the live and durable fallback URLs.
 
 Post-hackathon hardening:
 
@@ -340,7 +346,7 @@ TrialGuard/
 ├── docs/                    # Static GitHub Pages fallback
 ├── eval/                    # Fixed evaluations and live metric sample
 ├── slides/                  # Editable deck, assets, and screenshots
-├── tests/                   # 79 automated tests
+├── tests/                   # 80 automated tests
 ├── DEPLOYMENT.md
 ├── DEVELOPMENT_PLAN.md
 ├── Dockerfile

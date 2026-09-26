@@ -8,10 +8,18 @@ release unsupported claims.
 It does **not** predict efficacy, recommend protocol changes, or make clinical,
 regulatory, or go/no-go decisions. Its output is for qualified human review.
 
-Public checked showcase:
-[shubhamkragrawal.github.io/TrialGuard](https://shubhamkragrawal.github.io/TrialGuard/).
-Visitors can use its **Find more NCT IDs** link to browse the public
-ClinicalTrials.gov search; arbitrary live reviews require the full application.
+Public applications:
+
+- [Live Bedrock demo](https://commerce-terminal-contamination-chosen.trycloudflare.com/) —
+  arbitrary valid NCT IDs while the temporary laptop tunnel remains awake.
+- [Durable Render fallback](https://trialguard-5erc.onrender.com/) — the two
+  prepared reports and grounded chat; visibly replays reviewed public data when
+  the registry blocks Render's outbound IP.
+- [Static checked showcase](https://shubhamkragrawal.github.io/TrialGuard/) —
+  always-on product walkthrough.
+
+Each public page links to ClinicalTrials.gov search so visitors can find more
+trial IDs.
 
 ## What happens in a review
 
@@ -51,9 +59,11 @@ flowchart LR
 
 The repository includes a credential-free Render blueprint and a
 production-oriented private-ECR/App Runner package. Render deploys in checked
-demo mode by default: it retrieves current public ClinicalTrials.gov data but
-does not call Bedrock. The fixed orchestration graph makes three role calls on
-the normal path and at most five when its single revision path runs.
+demo mode by default and does not call Bedrock. It first attempts current public
+ClinicalTrials.gov data and can replay the two reviewed public-data examples if
+that registry rejects the host's outbound IP. The fixed orchestration graph
+makes three role calls on the normal path and at most five when its single
+revision path runs.
 
 The current AWS workshop role can invoke Bedrock but explicitly denies
 CloudFormation, ECR, App Runner, Lambda, and Lightsail hosting actions. A static
@@ -78,6 +88,13 @@ deployed service and supplied through Render's secret settings. Never copy the
 temporary workshop role's access key, secret, or session token to Render.
 Detailed release checks and the limitations of the in-process daily counter are
 in [DEPLOYMENT.md](DEPLOYMENT.md).
+
+The current free service is
+[trialguard-5erc.onrender.com](https://trialguard-5erc.onrender.com/). Its
+ClinicalTrials.gov request is currently answered with HTTP 403, so it serves a
+clearly labeled reviewed replay for `NCT06860815` and `NCT06513364`; other IDs
+return a registry-unavailable error. The temporary live-Bedrock URL above
+continues to support arbitrary valid IDs.
 
 ## Run locally
 
@@ -118,7 +135,7 @@ docker build --check .
 
 Current build:
 
-- 79/79 automated tests pass.
+- 80/80 automated tests pass.
 - 7/7 fixed synthetic offline release behaviors match expectations.
 - A guarded live `NCT06513364` smoke test reached full release and its
   report-grounded chat returned a checked, source-linked answer.
