@@ -34,6 +34,7 @@ from app.schemas import (
     ChatTraceMetadata,
     CheckResult,
     CheckStatus,
+    EvidenceItem,
     UsageSummary,
 )
 
@@ -134,6 +135,9 @@ _STOP_WORDS = frozenset(
 _GENERIC_EVIDENCE_TERMS = frozenset(
     {"evidence", "summarize", "summary", "comparison", "comparable", "precedent"}
 )
+_PROTOCOL_SCOPE_TERMS = frozenset(
+    {"amendment", "amendments", "protocol", "successor"}
+)
 
 
 @dataclass(frozen=True)
@@ -192,30 +196,16 @@ class ChatService:
             affected_item="chat_request",
             reason="No prompt-injection, advice, or prediction pattern was detected.",
         )
-        if not report.precedents and not report.numeric_facts:
-            return _non_model_response(
-                report=report,
-                turn=turn,
-                disposition=ChatDisposition.UNSUPPORTED,
-                answer=UNSUPPORTED_ANSWER,
-                checks=[
-                    input_check,
-                    CheckResult(
-                        check_name="chat_grounding",
-                        status=CheckStatus.NOT_RUN,
-                        affected_item="chat_response",
-                        reason="The stored report has no evidence or numeric facts.",
-                    ),
-                ],
-                started=started,
-                status="unsupported",
-            )
-
+        scoped_answer = _target_protocol_scope_answer(report, request.message)
         provider = self._provider
         if provider is None and self.settings.bedrock_ready:
             provider = _bedrock_provider(self.settings)
 
-        if provider is None:
+        if scoped_answer is not None:
+            generated = scoped_answer
+            model_result = None
+            provider_name = "checked_target_record"
+        elif provider is None:
             generated = _offline_answer(report, request.message)
             model_result = None
             provider_name = "checked_offline_demo"
@@ -254,7 +244,7 @@ class ChatService:
                                         "source_url": item.source_url,
                                         "relevance_summary": item.relevance_summary,
                                     }
-                                    for item in report.precedents
+                                    for item in _chat_evidence(report)
                                 ],
                                 "numeric_facts": [
                                     fact.model_dump(mode="json")
@@ -269,7 +259,7 @@ class ChatService:
                         "run_id": report.run_id,
                         "stage": "report_chat",
                         "nct_id": report.trial.nct_id,
-                        "evidence_count": len(report.precedents),
+                        "evidence_count": len(_chat_evidence(report)),
                     },
                 )
             except ProviderGuardrailError:
@@ -475,7 +465,9 @@ def _release_checks(
     }
     checks: list[CheckResult] = []
     if generated.evidence_ids:
-        checks.extend(check_citation_bundle_membership([reference], report.precedents))
+        checks.extend(
+            check_citation_bundle_membership([reference], _chat_evidence(report))
+        )
     else:
         checks.append(
             CheckResult(
@@ -510,7 +502,7 @@ def _source_links(
     evidence_ids: Sequence[str],
     report: AssessmentReport,
 ) -> list[ChatSource]:
-    index = {item.evidence_id: item for item in report.precedents}
+    index = {item.evidence_id: item for item in _chat_evidence(report)}
     return [
         ChatSource(
             evidence_id=identifier,
@@ -521,6 +513,62 @@ def _source_links(
         for identifier in evidence_ids
         if identifier in index
     ]
+
+
+def _target_protocol_scope_answer(
+    report: AssessmentReport,
+    message: str,
+) -> Optional[ChatAgentOutput]:
+    if not (_terms(message) & _PROTOCOL_SCOPE_TERMS):
+        return None
+    trial = report.trial
+    phase = ", ".join(
+        value.replace("_", " ").replace("PHASE", "Phase ")
+        for value in trial.phase
+    )
+    descriptors = [trial.status]
+    if phase:
+        descriptors.append(phase)
+    if trial.study_type:
+        descriptors.append(trial.study_type.replace("_", " ").lower())
+    summary = ", ".join(descriptors)
+    return ChatAgentOutput(
+        answer=(
+            f"The checked public record describes {trial.nct_id} as {summary}. "
+            "It contains selected registry design fields, not the full original "
+            "protocol, amendment history, or a verified successor-trial link. "
+            "Those protocol-history questions therefore cannot be determined "
+            "from this report; the linked ClinicalTrials.gov record is the "
+            "checked public source."
+        ),
+        evidence_ids=[_target_evidence(report).evidence_id],
+        numeric_fact_ids=[],
+    )
+
+
+def _chat_evidence(report: AssessmentReport) -> list[EvidenceItem]:
+    return [_target_evidence(report), *report.precedents]
+
+
+def _target_evidence(report: AssessmentReport) -> EvidenceItem:
+    trial = report.trial
+    phase = ", ".join(trial.phase) or "not reported"
+    study_type = trial.study_type or "not reported"
+    return EvidenceItem(
+        evidence_id=f"registry:{trial.nct_id}:target_record",
+        nct_id=trial.nct_id,
+        title=trial.title,
+        phase=trial.phase,
+        conditions=trial.conditions,
+        field_path="protocolSection",
+        source_passage=(
+            f"Registry status: {trial.status}. "
+            f"Phase: {phase}. Study type: {study_type}."
+        ),
+        source_url=trial.source_url,
+        relevance_summary="Checked target-trial registry record.",
+        retrieval_timestamp=trial.retrieved_at,
+    )
 
 
 def _unsafe_request_reason(message: str) -> Optional[str]:

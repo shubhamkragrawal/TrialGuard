@@ -31,7 +31,7 @@
 | Durable Render URL | Deployed; prepared reports replay when registry access is blocked |
 | CloudWatch metrics and logs | Complete and receiving metadata-only events |
 | CloudWatch dashboard and alarms | Created |
-| Automated tests | 82/82 passing |
+| Automated tests | 84/84 passing |
 | Fixed evaluation suite | 7/7 expected behaviors matched |
 | Credential scan | Clean; no credential material is tracked |
 | Editable slide deck | Complete and updated for live deployment |
@@ -153,6 +153,9 @@ The chat:
 - requires every factual model answer to cite checked evidence or numeric facts;
 - deterministically reattaches uniquely matching numeric fact IDs and does not
   mistake NCT or biomedical identifiers such as `MK-0646` for quantities;
+- answers protocol-history questions with the checked target registry summary,
+  states that the full protocol and amendment history are unavailable, and
+  links the target ClinicalTrials.gov record;
 - returns clickable ClinicalTrials.gov source links;
 - falls back to an unsupported answer if any release check fails; and
 - stores history only in memory and does not put question or answer text in
@@ -221,7 +224,7 @@ collector is required for this demo.
 
 Latest release checks:
 
-- `82 passed` from the full pytest suite.
+- `84 passed` from the full pytest suite.
 - Ruff reports all checks passed.
 - All seven synthetic fixed evaluations match their expected release states.
 - `git diff --check` reports no whitespace errors.
@@ -350,7 +353,7 @@ TrialGuard/
 ├── docs/                    # Static GitHub Pages fallback
 ├── eval/                    # Fixed evaluations and live metric sample
 ├── slides/                  # Editable deck, assets, and screenshots
-├── tests/                   # 82 automated tests
+├── tests/                   # 84 automated tests
 ├── DEPLOYMENT.md
 ├── DEVELOPMENT_PLAN.md
 ├── Dockerfile

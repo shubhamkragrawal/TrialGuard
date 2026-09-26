@@ -169,11 +169,11 @@ def test_fabricated_evidence_id_is_not_released() -> None:
         for check in response.checks
     )
     assert provider.calls[0].metadata == {
-        "run_id": "chat-test",
-        "stage": "report_chat",
-        "nct_id": "NCT01234567",
-        "evidence_count": 1,
-    }
+            "run_id": "chat-test",
+            "stage": "report_chat",
+            "nct_id": "NCT01234567",
+            "evidence_count": 2,
+        }
 
 
 def test_unmatched_number_is_not_released() -> None:
@@ -249,6 +249,59 @@ def test_chat_restores_unique_exact_numeric_fact_ids_and_ignores_codes() -> None
         "cohort.resolved_stopped_count",
         "cohort.records_matched",
     ]
+    assert all(check.status != "failed" for check in response.checks)
+
+
+def test_protocol_question_returns_target_scope_and_source_without_model() -> None:
+    provider = FakeProvider(
+        {"report_chat": [RuntimeError("The provider must not be called.")]}
+    )
+
+    response = ChatService(Settings(), provider=provider).answer(
+        report=report(),
+        request=ChatRequest(
+            message="Summarize the protocol, amendments, and successor trial."
+        ),
+        turn=1,
+    )
+
+    assert response.disposition == "answered"
+    assert "not the full original protocol" in response.answer
+    assert "cannot be determined from this report" in response.answer
+    assert response.evidence_ids == [
+        "registry:NCT01234567:target_record"
+    ]
+    assert response.sources[0].source_url.endswith("NCT01234567")
+    assert response.trace.provider == "checked_target_record"
+    assert response.usage.model_calls == 0
+    assert provider.calls == []
+    assert all(check.status != "failed" for check in response.checks)
+
+
+def test_model_can_cite_checked_target_record() -> None:
+    provider = FakeProvider(
+        {
+            "report_chat": [
+                ChatAgentOutput(
+                    answer="The target registry status is TERMINATED.",
+                    evidence_ids=["registry:NCT01234567:target_record"],
+                    numeric_fact_ids=[],
+                )
+            ]
+        }
+    )
+
+    response = ChatService(Settings(), provider=provider).answer(
+        report=report(),
+        request=ChatRequest(message="What status is reported for the target record?"),
+        turn=1,
+    )
+
+    assert response.disposition == "answered"
+    assert response.evidence_ids == [
+        "registry:NCT01234567:target_record"
+    ]
+    assert response.sources[0].source_url.endswith("NCT01234567")
     assert all(check.status != "failed" for check in response.checks)
 
 
