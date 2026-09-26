@@ -42,7 +42,7 @@ Prepared examples:
 
 ```mermaid
 flowchart LR
-    U[Reviewer browser] --> A[FastAPI UI and API<br/>Render or AWS App Runner]
+    U[Reviewer browser] --> A[FastAPI UI and API<br/>Cloudflare live route or Render fallback]
     A --> O[Bounded orchestrator<br/>90 s, ≤5 role calls, 1 revision]
     O --> R[ClinicalTrials.gov<br/>allowlisted public fields]
     O --> E[Evidence role]
@@ -53,8 +53,8 @@ flowchart LR
     H --> B
     O --> G[Deterministic release gates<br/>citations · passages · numbers · language]
     G --> P[Evidence-linked report]
-    I[IAM workload role<br/>no embedded credentials] -.-> A
-    A -. metadata-only logs .-> L[Operational trace]
+    I[AWS session or workload role<br/>no embedded credentials] -.-> A
+    A -. metadata-only logs .-> L[CloudWatch operational trace]
 ```
 
 The repository includes a credential-free Render blueprint and a

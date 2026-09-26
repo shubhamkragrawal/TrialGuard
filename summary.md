@@ -34,7 +34,7 @@
 | Automated tests | 80/80 passing |
 | Fixed evaluation suite | 7/7 expected behaviors matched |
 | Credential scan | Clean; no credential material is tracked |
-| Editable slide deck | Complete |
+| Editable slide deck | Complete and updated for live deployment |
 | Architecture diagram | Complete in README and deck |
 
 The build is usable in a live presentation now. Visitors can enter a valid NCT
@@ -90,6 +90,8 @@ returns HTTP 403 to the Render instance, so the application visibly replays
 reviewed public-data reports for `NCT06860815` and `NCT06513364`. Other IDs
 return a registry-unavailable error. Live Bedrock on Render requires a durable,
 revocable, least-privilege AWS identity stored only in Render's secret settings.
+The public replay path and its source-linked report chat were verified end to
+end after the latest deployment.
 
 ## 4. End-to-end workflow
 
@@ -298,7 +300,8 @@ The current choices are:
 
 ## 15. Presentation assets
 
-- Final deck: `slides/TrialGuard_Presentation_Deck_Final.pptx`
+- Current live-demo deck: `slides/TrialGuard_Presentation_Deck_Live.pptx`
+- Previous final deck: `slides/TrialGuard_Presentation_Deck_Final.pptx`
 - Editable deck: `slides/TrialGuard_Presentation_Deck.pptx`
 - Template deck: `slides/TrialGuard_Presentation_Template_v2.pptx`
 - Editable source: `slides/source/trialguard_template.mjs`
@@ -314,7 +317,6 @@ For the presentation window:
 1. Keep the live Bedrock tunnel as the interactive presentation URL unless a
    durable Render AWS identity is available.
 2. Record a two-to-three-minute backup demo video.
-3. Update the final slide with the live and durable fallback URLs.
 
 Post-hackathon hardening:
 

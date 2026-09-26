@@ -169,7 +169,7 @@ function setNotes(slide, text) {
   addText(slide, "TrialGuard", {
     x: 70, y: 165, w: 790, h: 96, size: 82, color: C.white, bold: true,
   });
-  addText(slide, "Evidence-linked operational review questions from public trial records", {
+  addText(slide, "Evidence-linked trial review and grounded follow-up chat from public records", {
     x: 74, y: 285, w: 770, h: 106, size: 31, color: C.white,
   });
   addLine(slide, 74, 430, 120, 0, C.aqua, 5);
@@ -273,7 +273,7 @@ function setNotes(slide, text) {
     ["02", "Retrieve", "Load an allowlisted public trial record."],
     ["03", "Compare", "Build the cohort and rank stopped precedents."],
     ["04", "Draft", "Create evidence-linked review questions."],
-    ["05", "Release", "Challenge the draft and apply deterministic checks."],
+    ["05", "Release", "Run release gates, then open bounded report-grounded chat."],
   ];
   steps.forEach((item, i) => {
     const y = 224 + i * 78;
@@ -317,15 +317,15 @@ function setNotes(slide, text) {
   );
 }
 
-// Slide 4: intended AWS architecture
+// Slide 4: live hybrid architecture
 {
   const slide = presentation.slides.add();
   slide.background.fill = C.white;
   addSlideTitle(
     slide,
     4,
-    "System architecture",
-    "The intended AWS design keeps model output inside a deterministic release path"
+    "Live hybrid architecture",
+    "Cloudflare exposes live Bedrock; Render provides the durable checked-demo fallback"
   );
 
   const node = ({
@@ -366,7 +366,7 @@ function setNotes(slide, text) {
   });
   node({
     x: 248, y: 224, w: 190, h: 104,
-    eyebrow: "AWS APP RUNNER", title: "FastAPI", detail: "Container service",
+    eyebrow: "PUBLIC ROUTES", title: "FastAPI", detail: "Cloudflare + Render",
     fill: C.mint,
   });
   node({
@@ -384,7 +384,7 @@ function setNotes(slide, text) {
   });
   node({
     x: 1076, y: 224, w: 140, h: 104,
-    eyebrow: "OUTPUT", title: "Report", detail: "Human review",
+    eyebrow: "OUTPUT", title: "Report + chat", detail: "Human review",
     fill: C.sand, border: C.coral, eyebrowColor: C.coral,
   });
 
@@ -415,14 +415,15 @@ function setNotes(slide, text) {
     x: 604, y: 402, w: 612, h: 122, geometry: "roundRect",
     fill: C.ice, lineFill: C.teal, lineWidth: 2,
   });
-  addText(slide, "AMAZON BEDROCK  ·  US-EAST-1", {
+  addText(slide, "AMAZON BEDROCK  ·  US-EAST-1  ·  CLAUDE HAIKU 4.5  ·  GUARDRAIL", {
     x: 624, y: 416, w: 572, h: 19, size: 11, color: C.teal,
     bold: true, align: "center",
   });
   const roles = [
-    [624, 456, 172, "EVIDENCE", "Grounded facts"],
-    [812, 456, 184, "COORDINATOR", "Review questions"],
-    [1012, 456, 184, "CHALLENGE", "Adversarial review"],
+    [624, 456, 132, "EVIDENCE", "Grounded facts"],
+    [768, 456, 132, "COORDINATOR", "Review questions"],
+    [912, 456, 132, "CHALLENGE", "Adversarial review"],
+    [1056, 456, 140, "REPORT CHAT", "Bounded answers"],
   ];
   roles.forEach(([x, y, w, title, detail]) => {
     addShape(slide, {
@@ -443,7 +444,7 @@ function setNotes(slide, text) {
     x: 64, y: 557, w: 548, h: 84, geometry: "roundRect",
     fill: C.mint, lineFill: "none",
   });
-  addText(slide, "IAM WORKLOAD ROLE", {
+  addText(slide, "AWS SESSION / IAM ROLE", {
     x: 86, y: 573, w: 190, h: 18, size: 11, color: C.teal, bold: true,
   });
   addText(slide, "No embedded credentials", {
@@ -462,25 +463,25 @@ function setNotes(slide, text) {
   addFooter(slide, 4);
   setNotes(
     slide,
-    "Source: implemented TrialGuard runtime and deployment package, 2026-09-26. This is the intended AWS production design. The current workshop role cannot provision App Runner. The diagram uses editable native PowerPoint shapes."
+    "Source: implemented TrialGuard runtime and deployment status verified 2026-09-26. The live route uses a Cloudflare quick tunnel to the local FastAPI process, which invokes Amazon Bedrock Claude Haiku 4.5 in us-east-1 with a configured Bedrock Guardrail. Render hosts a durable checked-demo fallback without AWS credentials. CloudWatch receives metadata-only logs and metrics. The diagram uses editable native PowerPoint shapes."
   );
 }
 
-// Slide 5: verified evaluation metrics
+// Slide 5: verified build metrics
 {
   const slide = presentation.slides.add();
   slide.background.fill = C.white;
   addSlideTitle(
     slide,
     5,
-    "Evaluation results",
-    "Repeatable checks and one live smoke test show the current implementation boundary"
+    "Verified build",
+    "Tests, fixed evaluations, live Bedrock, grounded chat, and observable traces"
   );
 
   addText(slide, "AUTOMATED VALIDATION", {
     x: 66, y: 222, w: 390, h: 24, size: 14, color: C.teal, bold: true,
   });
-  addText(slide, "52/52", {
+  addText(slide, "80/80", {
     x: 64, y: 258, w: 300, h: 72, size: 62, color: C.navy, bold: true,
   });
   addText(slide, "tests pass", {
@@ -502,26 +503,26 @@ function setNotes(slide, text) {
   );
 
   addLine(slide, 526, 216, 0, 420, C.fog, 1);
-  addText(slide, "LIVE SMOKE TEST  ·  ONE SAMPLE", {
+  addText(slide, "LIVE BEDROCK VALIDATION  ·  ONE SAMPLE", {
     x: 576, y: 222, w: 590, h: 24, size: 14, color: C.coral, bold: true,
   });
-  addText(slide, "NCT06860815", {
+  addText(slide, "NCT06513364", {
     x: 576, y: 260, w: 580, h: 30, size: 19, color: C.teal, bold: true,
   });
   addText(slide, "Full release", {
     x: 576, y: 300, w: 330, h: 48, size: 38, color: C.navy, bold: true,
   });
-  addText(slide, "14/14 checks passed", {
+  addText(slide, "Grounded chat passed", {
     x: 888, y: 311, w: 297, h: 30, size: 19, color: C.teal, bold: true,
     align: "right",
   });
   addLine(slide, 576, 365, 610, 0, C.fog, 1);
 
   const liveMetrics = [
-    [576, "3", "BEDROCK CALLS"],
-    [730, "10,821", "INPUT TOKENS"],
-    [902, "1,758", "OUTPUT TOKENS"],
-    [1064, "11.77 s", "ELAPSED"],
+    [576, "3", "REPORT CALLS"],
+    [730, "10,282", "INPUT TOKENS"],
+    [902, "923", "OUTPUT TOKENS"],
+    [1064, "15.9 s", "ELAPSED"],
   ];
   liveMetrics.forEach(([x, value, label], i) => {
     addText(slide, value, {
@@ -540,28 +541,33 @@ function setNotes(slide, text) {
     }
   });
   addShape(slide, {
-    x: 576, y: 480, w: 610, h: 84, geometry: "roundRect",
+    x: 576, y: 480, w: 292, h: 84, geometry: "roundRect",
     fill: C.mint, lineFill: "none",
   });
-  addText(slide, "$0.001071", {
-    x: 598, y: 494, w: 255, h: 44, size: 37, color: C.navy, bold: true,
+  addText(slide, "PROMPT INJECTION", {
+    x: 598, y: 495, w: 248, h: 18, size: 11, color: C.teal, bold: true,
   });
-  addText(slide, "estimated Bedrock model cost", {
-    x: 860, y: 506, w: 300, h: 28, size: 18, color: C.teal, bold: true,
-    align: "right",
+  addText(slide, "Blocked", {
+    x: 598, y: 520, w: 248, h: 30, size: 25, color: C.navy, bold: true,
   });
-  addText(slide, "Nova Lite Standard: $0.06/M input and $0.24/M output", {
-    x: 598, y: 539, w: 562, h: 18, size: 11, color: C.gray,
-    align: "right",
+  addShape(slide, {
+    x: 884, y: 480, w: 302, h: 84, geometry: "roundRect",
+    fill: C.pale, lineFill: "none",
   });
-  addText(slide, "Rates verified 2026-09-26. One live sample, not a benchmark.", {
+  addText(slide, "CLOUDWATCH", {
+    x: 906, y: 495, w: 258, h: 18, size: 11, color: C.teal, bold: true,
+  });
+  addText(slide, "Trace received", {
+    x: 906, y: 520, w: 258, h: 30, size: 25, color: C.navy, bold: true,
+  });
+  addText(slide, "Token counts are measured; current Haiku price is not hard-coded.", {
     x: 576, y: 584, w: 610, h: 30, size: 15, color: C.coral,
     bold: true, align: "center",
   });
   addFooter(slide, 5);
   setNotes(
     slide,
-    "Verified values supplied from the stable TrialGuard build on 2026-09-26: 52/52 tests pass; 7/7 synthetic offline behaviors matched; one NCT06860815 live smoke test produced a full release, 14/14 checks, 3 calls, 10,821 input tokens, 1,758 output tokens, and 11.77 seconds elapsed. Estimated cost uses Amazon Nova Lite Standard rates of $0.06 per million input tokens and $0.24 per million output tokens, verified 2026-09-26. One live sample is not a benchmark."
+    "Verified values from the stable TrialGuard build on 2026-09-26: 80/80 tests pass; 7/7 fixed synthetic evaluations matched; NCT06513364 reached full release with five precedents and three review questions; report chat returned a checked source-linked answer; a separate prompt-injection test was blocked; CloudWatch received the metadata-only event. One recent report used three Bedrock calls, 10,282 input tokens, 923 output tokens, and about 15.9 seconds. One observation is not a benchmark. TrialGuard records measured tokens and applies configured per-million-token rates rather than hard-coding a current Haiku price."
   );
 }
 
@@ -582,8 +588,8 @@ function setNotes(slide, text) {
 
   const limits = [
     ["Public data", "Selected, allowlisted ClinicalTrials.gov fields only"],
-    ["Sensitive data", "No PHI or confidential protocol uploads"],
-    ["Decision support", "No prediction, design recommendation, or clinical advice"],
+    ["Safety boundary", "No PHI uploads, prediction, design recommendation, or advice"],
+    ["Live allowance", "15 shared assessment and model-backed chat operations per UTC day"],
     ["Accountability", "A qualified reviewer makes the final decision"],
   ];
   limits.forEach((item, i) => {
@@ -604,13 +610,13 @@ function setNotes(slide, text) {
   });
   const deployment = [
     [
-      "PUBLIC SHOWCASE",
-      "Live public demo\nshubhamkragrawal.github.io/TrialGuard",
-      17,
+      "LIVE BEDROCK",
+      "commerce-terminal-contamination-\nchosen.trycloudflare.com",
+      14,
     ],
-    ["PRODUCTION TARGET", "FastAPI on AWS App Runner with Bedrock in us-east-1"],
-    ["CURRENT CONSTRAINT", "The workshop IAM role blocks App Runner provisioning"],
-    ["PACKAGE STATUS", "Ready for deployment from an authorized AWS account"],
+    ["DURABLE FALLBACK", "trialguard-5erc.onrender.com\nTwo reviewed replay IDs", 17],
+    ["ACCESS NOTE", "Live route needs this laptop awake; Render may cold-start", 18],
+    ["NEXT PRODUCTION", "Managed AWS compute plus shared storage and rate limits", 18],
   ];
   deployment.forEach((item, i) => {
     const y = 150 + i * 120;
@@ -635,7 +641,7 @@ function setNotes(slide, text) {
   addFooter(slide, 6, true);
   setNotes(
     slide,
-    "Source: TrialGuard Development Plan, sections 1, 3, 9, 17, and 18, plus deployment status verified 2026-09-26. The public showcase is live at https://shubhamkragrawal.github.io/TrialGuard/ and uses static GitHub Pages because the workshop IAM role blocks App Runner provisioning. The App Runner package is ready for an authorized AWS account. Keep the intended-use boundary in the final deck."
+    "Source: implemented deployment status verified 2026-09-26. Live Bedrock URL: https://commerce-terminal-contamination-chosen.trycloudflare.com/. It accepts arbitrary valid NCT IDs, uses ClinicalTrials.gov and Amazon Bedrock in us-east-1, and remains available only while the laptop, app process, and quick tunnel stay awake. Durable fallback: https://trialguard-5erc.onrender.com/. Render cannot currently retrieve ClinicalTrials.gov from its outbound address, so it serves clearly labeled reviewed replays for NCT06860815 and NCT06513364 with no AWS credentials or model calls. Free Render instances may cold-start after inactivity. Static fallback: https://shubhamkragrawal.github.io/TrialGuard/. Keep the intended-use boundary in the final deck."
   );
 }
 
