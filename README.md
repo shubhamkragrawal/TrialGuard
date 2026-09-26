@@ -34,13 +34,13 @@ Prepared examples:
 
 ```mermaid
 flowchart LR
-    U[Reviewer browser] --> A[FastAPI UI and API<br/>AWS App Runner target]
-    A --> O[Bounded orchestrator<br/>90 s, 8-call ceiling, 1 revision]
+    U[Reviewer browser] --> A[FastAPI UI and API<br/>Render or AWS App Runner]
+    A --> O[Bounded orchestrator<br/>90 s, ≤5 role calls, 1 revision]
     O --> R[ClinicalTrials.gov<br/>allowlisted public fields]
     O --> E[Evidence role]
     O --> C[Coordinator role]
     O --> H[Challenge role]
-    E --> B[Amazon Bedrock<br/>Nova Lite · us-east-1]
+    E --> B[Amazon Bedrock<br/>Claude Haiku 4.5 · us-east-1]
     C --> B
     H --> B
     O --> G[Deterministic release gates<br/>citations · passages · numbers · language]
@@ -49,12 +49,35 @@ flowchart LR
     A -. metadata-only logs .-> L[Operational trace]
 ```
 
-The repository includes a production-oriented private-ECR/App Runner package.
+The repository includes a credential-free Render blueprint and a
+production-oriented private-ECR/App Runner package. Render deploys in checked
+demo mode by default: it retrieves current public ClinicalTrials.gov data but
+does not call Bedrock. The fixed orchestration graph makes three role calls on
+the normal path and at most five when its single revision path runs.
+
 The current AWS workshop role can invoke Bedrock but explicitly denies
 CloudFormation, ECR, App Runner, Lambda, and Lightsail hosting actions. A static
 checked showcase is therefore used for the public presentation fallback; the
-full application runs locally and can deploy unchanged from an AWS account with
-the permissions documented in [DEPLOYMENT.md](DEPLOYMENT.md).
+full application can deploy to Render without AWS credentials or to App Runner
+from an AWS account with the permissions documented in
+[DEPLOYMENT.md](DEPLOYMENT.md).
+
+## Deploy on Render
+
+`render.yaml` defines one Docker web service in Render's Virginia region with
+the `/health` health check. Application calls to AWS remain pinned to
+`us-east-1`. The safe default is credential-free checked-demo generation, a
+six-request-per-minute per-client limit, and a configured public live-Bedrock
+allowance of 15 shared assessment/chat operations per UTC day if live
+generation is later enabled.
+
+Connect this repository as a Render Blueprint and deploy it without adding AWS
+credential variables. Live Bedrock must remain disabled unless a durable,
+revocable, least-privilege AWS identity has been created specifically for the
+deployed service and supplied through Render's secret settings. Never copy the
+temporary workshop role's access key, secret, or session token to Render.
+Detailed release checks and the limitations of the in-process daily counter are
+in [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Run locally
 
@@ -74,8 +97,10 @@ chain or an IAM workload role—never copy credentials into this repository:
 
 ```bash
 export TRIALGUARD_AWS_REGION=us-east-1
-export TRIALGUARD_BEDROCK_MODEL_ID=us.amazon.nova-lite-v1:0
+export TRIALGUARD_BEDROCK_MODEL_ID=us.anthropic.claude-haiku-4-5-20251001-v1:0
+export TRIALGUARD_BEDROCK_NATIVE_JSON_SCHEMA=true
 export TRIALGUARD_LIVE_BEDROCK_ENABLED=true
+export TRIALGUARD_DAILY_LIVE_RUN_LIMIT=15
 .venv/bin/uvicorn app.main:app --reload
 ```
 
@@ -93,9 +118,14 @@ docker build --check .
 
 Current build:
 
-- 52/52 automated tests pass.
+- 79/79 automated tests pass.
 - 7/7 fixed synthetic offline release behaviors match expectations.
-- A live `NCT06860815` smoke test reached full release with 14/14 checks.
+- A guarded live `NCT06513364` smoke test reached full release and its
+  report-grounded chat returned a checked, source-linked answer.
+- Metadata-only assessment and chat events are published to the `TrialGuard`
+  CloudWatch metrics namespace and `/trialguard/demo` log group when enabled.
+  The AWS demo account also has a `TrialGuard-Demo` dashboard and non-notifying
+  assessment/chat latency alarms.
 
 The synthetic suite checks software boundaries; it is not a clinical validation
 or a model-quality benchmark.
@@ -110,7 +140,7 @@ estimated model cost =
   + output tokens × output rate / 1,000,000
 ```
 
-One live smoke test on 2026-09-26 used three Nova Lite calls, 10,821 input
+The original live cost baseline on 2026-09-26 used three Nova Lite calls, 10,821 input
 tokens, and 1,758 output tokens. At the Amazon Bedrock Standard-tier rates
 verified for `us-east-1` that day—$0.06 per million input tokens and $0.24 per
 million output tokens—the estimated model cost was **$0.001071**. The run took
@@ -122,6 +152,15 @@ before deployment. Hosting, logs, networking, taxes, and free-tier effects are
 excluded. The machine-readable observation is in
 [`eval/live_metrics.json`](eval/live_metrics.json).
 
+The current guarded Haiku validation used three report-role calls with 10,323
+input tokens and 980 output tokens, followed by one grounded chat call with
+1,483 input tokens and 56 output tokens. No dollar estimate is claimed until
+current Haiku rates are configured.
+
+The configured allowance of 15 shared live operations covers both assessments
+and model-backed chat turns. It is an operating guardrail, not a spend cap:
+token counts vary and the in-memory counter resets on process restart.
+
 ## Security and privacy
 
 - Only public ClinicalTrials.gov fields are accepted; there is no patient or
@@ -131,6 +170,9 @@ excluded. The machine-readable observation is in
   content before any model call.
 - Requests, concurrency, model calls, revisions, and live daily usage are
   bounded.
+- Public deployment configuration allows 15 shared live Bedrock assessment/chat
+  operations per UTC day per running process; this in-memory demo control
+  resets on restart and is not a billing guarantee.
 - Credentials, `.env` files, private keys, runtime caches, and generated runs
   are ignored by Git.
 - Deployment uses IAM roles and metadata-only operational traces; prompts,

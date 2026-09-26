@@ -1,16 +1,85 @@
 # TrialGuard deployment
 
-This package targets one public FastAPI container on AWS App Runner. The
-container is stored in private Amazon ECR and calls Amazon Bedrock with an App
-Runner instance role. No AWS access key, secret key, session token, model
-payload, or application secret belongs in the image, repository, App Runner
-configuration, or logs.
+This package supports two public FastAPI container paths:
+
+- Render, using `render.yaml`, defaults to credential-free checked-demo
+  generation while still retrieving live public ClinicalTrials.gov data.
+- AWS App Runner stores the image in private Amazon ECR and can call Amazon
+  Bedrock with an App Runner instance role.
+
+No AWS access key, secret key, session token, model payload, or application
+secret belongs in the image, repository, Blueprint, plain Render environment
+configuration, App Runner configuration, or logs.
 
 The ECR image path is authoritative. `apprunner.yaml` is only a source-based
 fallback because App Runner does not consume that file for image-based
 services.
 
-## Prerequisites
+## Render deployment
+
+The checked-in `render.yaml` creates one Docker web service with:
+
+- Render region `virginia`;
+- application AWS region `us-east-1`;
+- a `/health` liveness check;
+- checked-demo generation by default (`TRIALGUARD_LIVE_BEDROCK_ENABLED=false`);
+- the current structural maximum of five model-role calls;
+- a configured allowance of 15 shared live assessment/chat operations per UTC
+  day if live generation is deliberately enabled; and
+- six requests per minute per client.
+
+To deploy:
+
+1. In Render, create a **Blueprint** and connect this GitHub repository.
+2. Review the generated service. Do not add AWS credentials.
+3. Deploy and wait for `/health` to pass.
+4. Open `/api/v1/runtime` and confirm the provider is
+   `checked_offline_demo`, the Region is `us-east-1`, and the model-call value
+   is `5`.
+5. Run the two prepared NCT IDs and one arbitrary valid NCT ID before sharing
+   the URL.
+
+The default service makes no Bedrock calls and therefore needs no AWS identity.
+It still depends on outbound HTTPS access to ClinicalTrials.gov, so verify one
+uncached NCT ID from the deployed service.
+
+### Enabling live Bedrock on Render
+
+Do **not** store the temporary workshop role's credentials on Render. Workshop
+access keys and session tokens are short-lived, often broad, and will expire;
+they are unsuitable for a public service. They must not be committed, placed
+in `render.yaml`, pasted into build arguments, or added as plain configuration.
+
+Enable live mode only after supplying a durable, revocable, least-privilege AWS
+identity created specifically for TrialGuard. Its policy should allow only the
+required `bedrock:InvokeModel` and `bedrock:InvokeModelWithResponseStream`
+resources in `us-east-1` (including each required inference-profile destination
+resource). Store credential material only in Render's secret environment
+settings, never in this repository. Then set these non-secret values in the
+Render dashboard:
+
+```text
+TRIALGUARD_LIVE_BEDROCK_ENABLED=true
+TRIALGUARD_AWS_REGION=us-east-1
+TRIALGUARD_BEDROCK_MODEL_ID=us.anthropic.claude-haiku-4-5-20251001-v1:0
+TRIALGUARD_BEDROCK_NATIVE_JSON_SCHEMA=true
+TRIALGUARD_DAILY_LIVE_RUN_LIMIT=15
+```
+
+Redeploy and confirm `/api/v1/runtime` reports the live provider. Revert
+`TRIALGUARD_LIVE_BEDROCK_ENABLED` to `false` immediately if authentication,
+throttling, cost, or abuse controls behave unexpectedly.
+
+The 15-operation control is an in-memory, per-process UTC-day counter shared by
+live assessments and model-backed report-chat turns. It resets when
+the process restarts and would multiply across instances, so it is appropriate
+only as a hackathon safety control on one instance—not as a durable account
+budget or billing guarantee. Keep the Render service at one instance and use
+AWS quotas, billing alerts, and metadata-only monitoring as additional
+controls. Render hosting and outbound traffic may have separate costs and free
+plan limits; check the current Render plan before publishing.
+
+## AWS App Runner prerequisites
 
 - AWS CLI v2 and Docker.
 - An AWS account with Bedrock model access in the deployment Region.
@@ -67,14 +136,17 @@ These values are configuration, not credentials:
 | `TRIALGUARD_BEDROCK_CHALLENGE_MODEL_ID` | no | Optional separate Challenge model; defaults to the primary model. |
 | `TRIALGUARD_BEDROCK_GUARDRAIL_ID` | no | Optional managed guardrail ID; empty means disabled. |
 | `TRIALGUARD_BEDROCK_GUARDRAIL_VERSION` | no | Required when a guardrail ID is set. |
+| `TRIALGUARD_BEDROCK_NATIVE_JSON_SCHEMA` | yes | Enables Bedrock native structured output for compatible models. |
 | `TRIALGUARD_LIVE_BEDROCK_ENABLED` | yes | Must be `true` for live generation. |
+| `TRIALGUARD_CLOUDWATCH_METRICS_ENABLED` | no | Publishes low-cardinality, metadata-only custom metrics when `true`. |
+| `TRIALGUARD_CLOUDWATCH_LOGS_ENABLED` | no | Publishes metadata-only events to `/trialguard/demo` when `true`. |
 | `TRIALGUARD_REGISTRY_BASE_URL` | yes | Fixed to `https://clinicaltrials.gov`. |
-| `TRIALGUARD_MODEL_CALL_LIMIT` | yes | Hard application ceiling; configured as `8`. |
+| `TRIALGUARD_MODEL_CALL_LIMIT` | yes | Configured as `5`, matching the fixed graph's structural maximum of at most five role calls. |
 | `TRIALGUARD_MAX_REVISIONS` | yes | Hard revision ceiling; configured as `1`. |
 | `TRIALGUARD_REPORT_TIMEOUT_SECONDS` | yes | End-to-end ceiling; configured as `90`. |
 | `TRIALGUARD_MODEL_TIMEOUT_SECONDS` | yes | Per-model call ceiling. |
 | `TRIALGUARD_RATE_LIMIT_REQUESTS_PER_MINUTE` | yes | Per-IP public request cap. |
-| `TRIALGUARD_DAILY_LIVE_RUN_LIMIT` | yes | Daily live Bedrock assessment cap. |
+| `TRIALGUARD_DAILY_LIVE_RUN_LIMIT` | yes | Configured as `15`; in-memory per process and reset at restart. |
 | `TRIALGUARD_ALLOW_CACHED_DEMOS` | yes | Keeps frozen demo runs available after the live cap. |
 | `TRIALGUARD_LOG_PAYLOADS` | yes | Must remain `false` in a public environment. |
 | `TRIALGUARD_CACHE_DIR` | yes | Writable ephemeral cache path in the container. |
@@ -93,10 +165,12 @@ restarts must be reviewed and included as non-sensitive build assets.
 Do not publish the URL until the application enforces all of these controls:
 
 1. Accept only `^NCT\d{8}$`; do not accept user-provided URLs or free text.
-2. Limit each run to eight model calls, one revision, and 90 seconds.
-3. Rate-limit by the App Runner-provided client IP and enforce a total daily
-   live-assessment limit.
-4. Switch to reviewed cached demos when the live cap is reached.
+2. Keep the fixed graph at no more than five role calls, one revision, and 90
+   seconds.
+3. Rate-limit by the App Runner-provided client IP and enforce a shared daily
+   live-operation limit across assessments and report chat.
+4. Switch to credential-free checked-demo generation when the live cap is
+   reached.
 5. Limit request body size and concurrent assessments.
 6. Escape all registry and generated text before HTML rendering.
 7. Treat registry text as untrusted evidence, never as instructions.
@@ -106,6 +180,8 @@ Do not publish the URL until the application enforces all of these controls:
    payloads, contact fields, credentials, or chain-of-thought.
 10. Return no secret or infrastructure detail from `/health`, `/ready`, or
     `/api/v1/runtime`.
+11. Require every model-bearing endpoint, including report chat, to consume a
+    shared invocation budget before enabling public live Bedrock.
 
 App Runner terminates HTTPS and forwards traffic to port 8000. `/health` must
 be a cheap liveness check that performs no external call. `/ready` may report
@@ -174,7 +250,8 @@ release signal.
 App Runner keeps at least one instance active, so it continues to incur cost
 even without traffic. Before publishing:
 
-- Set a low `DAILY_LIVE_ASSESSMENT_LIMIT`.
+- Set `TRIALGUARD_DAILY_LIVE_RUN_LIMIT=15` and treat it as an in-process demo
+  safeguard, not a durable billing limit.
 - Keep App Runner `MaxSize` at 2 and review Bedrock service quotas.
 - Disable Bedrock model-invocation payload logging.
 - Deploy `deploy/budget.yaml` with a monitored email address if the account

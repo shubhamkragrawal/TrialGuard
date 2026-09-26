@@ -356,6 +356,100 @@
             </div>
           {% endif %}
         </section>
+
+        <section
+          class="report-section report-chat"
+          aria-labelledby="report-chat-title"
+          data-report-chat
+          data-run-id="{{ report.run_id|default('', true)|e }}"
+          data-turn-limit="5"
+        >
+          <div class="section-kicker">
+            <span>05</span>
+            <div>
+              <span class="eyebrow">Grounded follow-up</span>
+              <h2 id="report-chat-title">Ask about this report</h2>
+            </div>
+          </div>
+
+          <div class="chat-boundary" role="note">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3 20 6v6c0 4.7-3.2 8-8 10-4.8-2-8-5.3-8-10V6l8-3Z"/>
+              <path d="M9 12h6M12 9v6"/>
+            </svg>
+            <div>
+              <strong>Answers stay inside the checked record</strong>
+              <p>TrialGuard uses this report and its cited public sources. It will not provide medical advice or fill evidence gaps.</p>
+            </div>
+          </div>
+
+          <div
+            class="chat-log"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions text"
+            aria-label="Report conversation"
+            data-chat-log
+          >
+            <article class="chat-message chat-message--assistant">
+              <div class="chat-avatar" aria-hidden="true">TG</div>
+              <div class="chat-message__content">
+                <span class="chat-message__author">TrialGuard</span>
+                <div class="chat-bubble">
+                  <p>Ask why a comparison was selected, what supports a review question, or which evidence is missing.</p>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="chat-status-row">
+            <p class="chat-state" role="status" aria-live="polite" aria-atomic="true" data-chat-state>
+              0 of 5 questions used
+            </p>
+            <span class="chat-checked">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10 4 4 8-9"/></svg>
+              Citations checked
+            </span>
+          </div>
+
+          <form class="chat-form" data-chat-form>
+            <label for="report-chat-message">Your question about this report</label>
+            <div class="chat-composer">
+              <textarea
+                id="report-chat-message"
+                name="message"
+                rows="2"
+                maxlength="500"
+                placeholder="What evidence supports the first review question?"
+                required
+                autocomplete="off"
+                data-chat-input
+              ></textarea>
+              <button class="chat-send" type="submit" data-chat-submit>
+                <span data-chat-submit-label>Ask TrialGuard</span>
+                <span class="button-spinner" aria-hidden="true"></span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-4 14-3-6-7-1Z"/><path d="m12 13 7-8"/></svg>
+              </button>
+            </div>
+            <div class="chat-form__meta">
+              <span>Enter to send · Shift + Enter for a new line</span>
+              <span data-chat-count>0 / 500</span>
+            </div>
+            <p class="chat-form__error" role="alert" data-chat-form-error hidden></p>
+          </form>
+
+          <div class="chat-limit" role="status" aria-live="polite" tabindex="-1" data-chat-limit hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+            <div>
+              <strong>Conversation limit reached</strong>
+              <p data-chat-limit-message>This bounded five-question conversation is complete. Start a new review to investigate another trial.</p>
+            </div>
+          </div>
+
+          <noscript>
+            <p class="chat-noscript">JavaScript is required to ask follow-up questions about this report.</p>
+          </noscript>
+        </section>
       </div>
 
       <aside class="report-sidebar" aria-label="Review and validation">

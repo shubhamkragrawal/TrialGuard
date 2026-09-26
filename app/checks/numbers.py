@@ -11,6 +11,7 @@ NUMBER_PATTERN = re.compile(
     r"(?<![\w])(?P<number>[+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)"
     r"(?P<percent>\s*%)?"
 )
+PHASE_NUMBER_PATTERN = re.compile(r"\bphase\s+[1-4]\b", re.IGNORECASE)
 
 
 def check_numeric_fact_references(
@@ -92,7 +93,15 @@ def _generated_text(item: Any) -> str:
 
 def _extract_numbers(text: str) -> list[dict[str, Any]]:
     numbers: list[dict[str, Any]] = []
+    phase_number_spans = [
+        match.span() for match in PHASE_NUMBER_PATTERN.finditer(text)
+    ]
     for match in NUMBER_PATTERN.finditer(text):
+        if any(
+            start <= match.start() and match.end() <= end
+            for start, end in phase_number_spans
+        ):
+            continue
         raw_number = match.group("number").replace(",", "")
         try:
             value = Decimal(raw_number)

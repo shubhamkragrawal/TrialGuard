@@ -85,7 +85,20 @@ class ProviderRequestError(ProviderError):
 
 
 class ProviderGuardrailError(ProviderError):
-    """A configured Bedrock guardrail intervened."""
+    """A configured Bedrock guardrail intervened.
+
+    Only trace-safe operational metadata is retained. In particular, the
+    exception never carries the request messages, model output, or guardrail
+    assessment trace.
+    """
+
+    guardrail_action: Literal["intervened"] = "intervened"
+
+    def __init__(self, *, request_id: Optional[str] = None) -> None:
+        super().__init__(
+            "Bedrock guardrail intervened; model output was not accepted."
+        )
+        self.request_id = _safe_request_id(request_id)
 
 
 class StructuredOutputError(ProviderError):
@@ -193,8 +206,14 @@ class BedrockConverseConfig:
     retry_base_seconds: float = 0.25
     guardrail_identifier: Optional[str] = None
     guardrail_version: Optional[str] = None
+    native_json_schema: bool = False
 
     def __post_init__(self) -> None:
+        guardrail_identifier = _stripped_optional(self.guardrail_identifier)
+        guardrail_version = _stripped_optional(self.guardrail_version)
+        object.__setattr__(self, "guardrail_identifier", guardrail_identifier)
+        object.__setattr__(self, "guardrail_version", guardrail_version)
+
         if not self.model_id.strip():
             raise ProviderConfigurationError("A Bedrock model ID is required.")
         if not self.region_name.strip():
@@ -292,9 +311,9 @@ class BedrockConverseProvider:
                 response = self._invoke_with_timeout(request, remaining)
                 attempt_usage.append(_token_usage(response.get("usage")))
                 stop_reason = _optional_string(response.get("stopReason"))
-                if stop_reason == "guardrail_intervened":
+                if _guardrail_intervened(response):
                     raise ProviderGuardrailError(
-                        f"Bedrock guardrail intervened for role '{role}'."
+                        request_id=_request_id(response)
                     )
                 raw_text = _response_text(response)
                 parsed = parse_structured_output(raw_text, output_schema)
@@ -372,11 +391,24 @@ class BedrockConverseProvider:
             "Do not include markdown, commentary, or hidden reasoning:\n"
             + json.dumps(schema, separators=(",", ":"), sort_keys=True)
         )
-        conversation = [
-            {"role": message.role, "content": [{"text": message.content}]}
-            for message in messages
-            if message.role != "system"
-        ]
+        conversation = []
+        for message in messages:
+            if message.role == "system":
+                continue
+            if self.config.guardrail_identifier:
+                content = [
+                    {
+                        "guardContent": {
+                            "text": {
+                                "text": message.content,
+                                "qualifiers": ["guard_content"],
+                            }
+                        }
+                    }
+                ]
+            else:
+                content = [{"text": message.content}]
+            conversation.append({"role": message.role, "content": content})
         if not conversation:
             raise ProviderConfigurationError(
                 "At least one user or assistant message is required."
@@ -395,6 +427,25 @@ class BedrockConverseProvider:
             "messages": conversation,
             "inferenceConfig": inference_config,
         }
+        if self.config.native_json_schema:
+            request["outputConfig"] = {
+                "textFormat": {
+                    "type": "json_schema",
+                    "structure": {
+                        "jsonSchema": {
+                            "schema": json.dumps(
+                                _bedrock_json_schema(schema),
+                                separators=(",", ":"),
+                                sort_keys=True,
+                            ),
+                            "name": output_schema.__name__,
+                            "description": (
+                                "TrialGuard validated structured role output."
+                            ),
+                        }
+                    },
+                }
+            }
         if self.config.guardrail_identifier and self.config.guardrail_version:
             request["guardrailConfig"] = {
                 "guardrailIdentifier": self.config.guardrail_identifier,
@@ -646,8 +697,73 @@ def _optional_string(value: Any) -> Optional[str]:
     return value if isinstance(value, str) and value else None
 
 
+def _stripped_optional(value: Optional[str]) -> Optional[str]:
+    if not isinstance(value, str):
+        return None
+    stripped = value.strip()
+    return stripped or None
+
+
+_UNSUPPORTED_NATIVE_SCHEMA_KEYS = frozenset(
+    {
+        "default",
+        "exclusiveMaximum",
+        "exclusiveMinimum",
+        "format",
+        "maxItems",
+        "maxLength",
+        "maximum",
+        "minItems",
+        "minLength",
+        "minimum",
+        "multipleOf",
+        "pattern",
+        "uniqueItems",
+    }
+)
+
+
+def _bedrock_json_schema(value: Any) -> Any:
+    """Keep the structural JSON Schema subset accepted by Bedrock models."""
+
+    if isinstance(value, Mapping):
+        return {
+            key: _bedrock_json_schema(child)
+            for key, child in value.items()
+            if key not in _UNSUPPORTED_NATIVE_SCHEMA_KEYS
+        }
+    if isinstance(value, list):
+        return [_bedrock_json_schema(child) for child in value]
+    return value
+
+
 def _optional_int(value: Any) -> Optional[int]:
     return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def _guardrail_intervened(response: Mapping[str, Any]) -> bool:
+    """Recognize Bedrock intervention signals without retaining trace content."""
+
+    stop_reason = response.get("stopReason")
+    if (
+        isinstance(stop_reason, str)
+        and stop_reason.strip().lower() == "guardrail_intervened"
+    ):
+        return True
+
+    guardrail_action = response.get("guardrailAction")
+    return (
+        isinstance(guardrail_action, str)
+        and guardrail_action.strip().upper() == "INTERVENED"
+    )
+
+
+def _safe_request_id(value: Optional[str]) -> Optional[str]:
+    if value is None or len(value) > 128:
+        return None
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/-]*", value):
+        return None
+    return value
 
 
 def _error_code(exc: Optional[Exception]) -> Optional[str]:

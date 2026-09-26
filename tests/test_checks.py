@@ -112,6 +112,20 @@ def test_numeric_check_accepts_value_numerator_and_denominator():
     assert statuses(results) == ["passed"]
 
 
+def test_numeric_check_ignores_phase_label_numbers():
+    item = question(
+        question=(
+            "How should the Phase 2 context be reviewed given that "
+            "2 of 5 resolved studies stopped?"
+        ),
+        numeric_fact_ids=["fact-stop-rate"],
+    )
+
+    results = check_numeric_fact_references([item], [fact()])
+
+    assert statuses(results) == ["passed"]
+
+
 def test_numeric_check_blocks_mismatch_unknown_fact_and_missing_reference():
     mismatch = question(
         question="Which assumptions warrant review given a 75% stop rate?",

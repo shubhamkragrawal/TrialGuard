@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from app.schemas import AssessRequest, CohortResult, TrialRecord
+from app.schemas import AssessRequest, ChatRequest, CohortResult, TrialRecord
 
 
 def test_assess_request_normalizes_nct_id() -> None:
@@ -18,6 +18,16 @@ def test_assess_request_normalizes_nct_id() -> None:
 def test_assess_request_rejects_non_ids(value: str) -> None:
     with pytest.raises(ValidationError):
         AssessRequest(nct_id=value)
+
+
+def test_chat_request_is_trimmed_and_bounded() -> None:
+    assert ChatRequest(message="  explain the evidence  ").message == (
+        "explain the evidence"
+    )
+    with pytest.raises(ValidationError):
+        ChatRequest(message=" ")
+    with pytest.raises(ValidationError):
+        ChatRequest(message="x" * 501)
 
 
 def test_incomplete_cohort_cannot_publish_rate() -> None:

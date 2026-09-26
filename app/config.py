@@ -18,15 +18,18 @@ def _optional_float(value: str) -> float | None:
 @dataclass(frozen=True)
 class Settings:
     aws_region: str = "us-east-1"
-    bedrock_model_id: str = "us.amazon.nova-lite-v1:0"
+    bedrock_model_id: str = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
     bedrock_challenge_model_id: str = ""
     bedrock_guardrail_id: str = ""
     bedrock_guardrail_version: str = ""
+    bedrock_native_json_schema: bool = True
     live_bedrock_enabled: bool = False
+    cloudwatch_metrics_enabled: bool = False
+    cloudwatch_logs_enabled: bool = False
     registry_base_url: str = "https://clinicaltrials.gov"
     report_timeout_seconds: int = 90
-    model_call_limit: int = 8
-    daily_live_run_limit: int = 50
+    model_call_limit: int = 5
+    daily_live_run_limit: int = 15
     rate_limit_requests_per_minute: int = 6
     cache_dir: Path = Path("data/cache")
     runs_dir: Path = Path("runs")
@@ -51,8 +54,20 @@ class Settings:
                 "TRIALGUARD_BEDROCK_GUARDRAIL_VERSION",
                 cls.bedrock_guardrail_version,
             ),
+            bedrock_native_json_schema=_as_bool(
+                os.getenv(
+                    "TRIALGUARD_BEDROCK_NATIVE_JSON_SCHEMA",
+                    str(cls.bedrock_native_json_schema),
+                )
+            ),
             live_bedrock_enabled=_as_bool(
                 os.getenv("TRIALGUARD_LIVE_BEDROCK_ENABLED", "false")
+            ),
+            cloudwatch_metrics_enabled=_as_bool(
+                os.getenv("TRIALGUARD_CLOUDWATCH_METRICS_ENABLED", "false")
+            ),
+            cloudwatch_logs_enabled=_as_bool(
+                os.getenv("TRIALGUARD_CLOUDWATCH_LOGS_ENABLED", "false")
             ),
             registry_base_url=os.getenv(
                 "TRIALGUARD_REGISTRY_BASE_URL", cls.registry_base_url

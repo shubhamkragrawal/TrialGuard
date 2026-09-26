@@ -15,13 +15,28 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
+from app.chat import ChatHistoryTurn, ChatService
 from app.config import Settings
+from app.observability import (
+    CloudWatchLogsPublisher,
+    CloudWatchMetricsPublisher,
+    build_operational_event,
+    emit_json_event,
+)
 from app.orchestration import AssessmentService
 from app.registry import RegistryError
-from app.schemas import AssessmentReport, AssessRequest
+from app.schemas import AssessmentReport, AssessRequest, ChatRequest
 from eval.run_eval import run_all, summarize
 
 settings = Settings.from_env()
+metrics_publisher = CloudWatchMetricsPublisher.from_boto3(
+    enabled=settings.cloudwatch_metrics_enabled,
+    region_name=settings.aws_region,
+)
+logs_publisher = CloudWatchLogsPublisher.from_boto3(
+    enabled=settings.cloudwatch_logs_enabled,
+    region_name=settings.aws_region,
+)
 app = FastAPI(
     title="TrialGuard",
     version="0.1.0",
@@ -68,7 +83,10 @@ limiter = DemoLimiter(
     settings.daily_live_run_limit,
 )
 runs: dict[str, AssessmentReport] = {}
+chat_history: dict[str, list[ChatHistoryTurn]] = {}
+chat_locks: dict[str, asyncio.Lock] = {}
 MAX_STORED_RUNS = 25
+MAX_CHAT_TURNS = 5
 MAX_REQUEST_BODY_BYTES = 4_096
 assessment_slots = asyncio.Semaphore(2)
 
@@ -188,6 +206,7 @@ async def assess(request: Request):
         )
 
     _remember(report)
+    _publish_report_event(report)
     if wants_json:
         return JSONResponse(report.model_dump(mode="json"))
     return RedirectResponse(f"/runs/{report.run_id}", status_code=303)
@@ -215,6 +234,76 @@ async def report_api(run_id: str) -> dict[str, Any]:
     if report is None:
         raise HTTPException(status_code=404, detail="Checked report not found.")
     return report.model_dump(mode="json")
+
+
+@app.post("/api/v1/runs/{run_id}/chat")
+async def report_chat(request: Request, run_id: str) -> dict[str, Any]:
+    report = runs.get(run_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="Checked report not found.")
+
+    lock = chat_locks.setdefault(run_id, asyncio.Lock())
+    async with lock:
+        history = chat_history.setdefault(run_id, [])
+        if len(history) >= MAX_CHAT_TURNS:
+            raise HTTPException(
+                status_code=429,
+                detail="Chat turn limit reached for this report.",
+            )
+
+        client = request.client.host if request.client else "unknown"
+        now = datetime.now(timezone.utc).timestamp()
+        if not limiter.allow_request(client, now):
+            raise HTTPException(status_code=429, detail="Public demo rate limit reached.")
+
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                if int(content_length) > MAX_REQUEST_BODY_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail="Request body is too large.",
+                    )
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid Content-Length.",
+                ) from exc
+        body = await request.body()
+        if len(body) > MAX_REQUEST_BODY_BYTES:
+            raise HTTPException(status_code=413, detail="Request body is too large.")
+
+        try:
+            payload = await request.json()
+            chat_request = ChatRequest.model_validate(payload)
+        except (ValidationError, ValueError) as exc:
+            raise HTTPException(
+                status_code=422,
+                detail="Message must contain between 1 and 500 characters.",
+            ) from exc
+
+        request_settings = settings
+        if settings.bedrock_ready and not limiter.allow_live_run(now):
+            request_settings = replace(settings, live_bedrock_enabled=False)
+
+        response = await asyncio.to_thread(
+            ChatService(request_settings).answer,
+            report=report,
+            request=chat_request,
+            turn=len(history) + 1,
+            history=tuple(history),
+        )
+        history.append(
+            ChatHistoryTurn(
+                message=chat_request.message,
+                answer=response.answer,
+                evidence_ids=tuple(response.evidence_ids),
+                numeric_fact_ids=tuple(response.numeric_fact_ids),
+                disposition=response.disposition,
+            )
+        )
+        _publish_chat_event(response)
+        return response.model_dump(mode="json")
 
 
 @app.get("/evaluation", response_class=HTMLResponse)
@@ -261,7 +350,43 @@ async def ready() -> dict[str, Any]:
 def _remember(report: AssessmentReport) -> None:
     runs[report.run_id] = report
     while len(runs) > MAX_STORED_RUNS:
-        runs.pop(next(iter(runs)))
+        forgotten_run_id = next(iter(runs))
+        runs.pop(forgotten_run_id)
+        chat_history.pop(forgotten_run_id, None)
+        chat_locks.pop(forgotten_run_id, None)
+
+
+def _publish_report_event(report: AssessmentReport) -> None:
+    event = build_operational_event(
+        run_id=report.run_id,
+        stage="assessment",
+        status=report.release_state.value,
+        duration_ms=sum(item.duration_ms for item in report.trace),
+        release_state=report.release_state.value,
+        model_calls=report.usage.model_calls,
+        input_tokens=report.usage.input_tokens,
+        output_tokens=report.usage.output_tokens,
+        estimated_cost_usd=report.usage.estimated_cost_usd,
+    )
+    emit_json_event(event)
+    metrics_publisher.publish(event)
+    logs_publisher.publish(event)
+
+
+def _publish_chat_event(response: Any) -> None:
+    event = build_operational_event(
+        run_id=response.run_id,
+        stage="report_chat",
+        status=response.disposition.value,
+        duration_ms=response.trace.duration_ms,
+        model_calls=response.usage.model_calls,
+        input_tokens=response.usage.input_tokens,
+        output_tokens=response.usage.output_tokens,
+        estimated_cost_usd=response.usage.estimated_cost_usd,
+    )
+    emit_json_event(event)
+    metrics_publisher.publish(event)
+    logs_publisher.publish(event)
 
 
 def _runtime_context() -> dict[str, str]:

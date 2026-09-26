@@ -34,8 +34,8 @@ class CoordinatorAgentOutput(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    questions: List[ReviewQuestion] = Field(default_factory=list, max_length=3)
-    limitations: List[str] = Field(default_factory=list, max_length=5)
+    questions: List[ReviewQuestion] = Field(max_length=3)
+    limitations: List[str] = Field(max_length=5)
 
 
 def draft_review(

@@ -130,7 +130,29 @@ class AssessmentService:
             model_results.append(evidence_result)
             trace.append(_model_trace("evidence_agent", evidence_result))
 
-            selected = evidence_result.output.precedents
+            candidate_index = {
+                candidate.evidence_id: candidate for candidate in candidates
+            }
+            selected = []
+            unknown_evidence_ids = []
+            for evidence_id in dict.fromkeys(evidence_result.output.evidence_ids):
+                candidate = candidate_index.get(evidence_id)
+                if candidate is None:
+                    unknown_evidence_ids.append(evidence_id)
+                else:
+                    selected.append(candidate)
+            if unknown_evidence_ids:
+                checks.append(
+                    CheckResult(
+                        check_name="evidence_selection_membership",
+                        status=CheckStatus.FAILED,
+                        affected_item="precedents",
+                        reason=(
+                            "The Evidence Agent selected an ID outside the "
+                            "deterministic candidate bundle."
+                        ),
+                    )
+                )
             evidence_checks = [
                 *check_citation_bundle_membership(selected, candidates),
                 *check_source_passage_support(selected, candidates),
@@ -149,7 +171,7 @@ class AssessmentService:
             coordinator_result = await asyncio.to_thread(
                 draft_review,
                 provider,
-                target_trial=trial,
+                target_trial=_coordinator_target(trial),
                 cohort=retrieved.cohort,
                 precedents=selected,
                 numeric_facts=retrieved.numeric_facts,
@@ -186,7 +208,7 @@ class AssessmentService:
                 coordinator_result = await asyncio.to_thread(
                     draft_review,
                     provider,
-                    target_trial=trial,
+                    target_trial=_coordinator_target(trial),
                     cohort=retrieved.cohort,
                     precedents=selected,
                     numeric_facts=retrieved.numeric_facts,
@@ -316,6 +338,7 @@ class AssessmentService:
                     max_attempts=1,
                     guardrail_identifier=self.settings.bedrock_guardrail_id or None,
                     guardrail_version=self.settings.bedrock_guardrail_version or None,
+                    native_json_schema=self.settings.bedrock_native_json_schema,
                 )
             )
         return _demo_provider(candidates, numeric_facts)
@@ -344,7 +367,7 @@ def _demo_provider(candidates: list[Any], numeric_facts: tuple[Any, ...]) -> Fak
         for index, evidence in enumerate(selected, start=1)
     ]
     evidence_output = EvidenceAgentOutput(
-        precedents=selected,
+        evidence_ids=[item.evidence_id for item in selected],
         insufficient_evidence=not bool(selected),
         limitations=[] if selected else ["No comparable stopped study was available."],
     )
@@ -376,6 +399,20 @@ def _check_questions(
         *check_numeric_fact_references(questions, numeric_facts),
         *check_prohibited_language(questions),
     ]
+
+
+def _coordinator_target(trial: Any) -> dict[str, Any]:
+    """Expose only non-numeric target context to the drafting role."""
+
+    return {
+        "nct_id": trial.nct_id,
+        "title": trial.title,
+        "conditions": list(trial.conditions),
+        "intervention_types": list(trial.intervention_types),
+        "status": trial.status,
+        "study_type": trial.study_type,
+        "source_url": trial.source_url,
+    }
 
 
 def _resolve_mode(

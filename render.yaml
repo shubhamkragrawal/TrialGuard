@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: trialguard
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: TRIALGUARD_ENV
+        value: production
+      - key: TRIALGUARD_AWS_REGION
+        value: us-east-1
+      - key: TRIALGUARD_BEDROCK_MODEL_ID
+        value: us.anthropic.claude-haiku-4-5-20251001-v1:0
+      - key: TRIALGUARD_BEDROCK_NATIVE_JSON_SCHEMA
+        value: "true"
+      - key: TRIALGUARD_LIVE_BEDROCK_ENABLED
+        value: "false"
+      - key: TRIALGUARD_REGISTRY_BASE_URL
+        value: https://clinicaltrials.gov
+      - key: TRIALGUARD_REPORT_TIMEOUT_SECONDS
+        value: "90"
+      - key: TRIALGUARD_MODEL_CALL_LIMIT
+        value: "5"
+      - key: TRIALGUARD_DAILY_LIVE_RUN_LIMIT
+        value: "15"
+      - key: TRIALGUARD_RATE_LIMIT_REQUESTS_PER_MINUTE
+        value: "6"

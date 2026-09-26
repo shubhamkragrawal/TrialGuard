@@ -43,6 +43,12 @@ class ReleaseState(str, Enum):
     BLOCKED = "blocked"
 
 
+class ChatDisposition(str, Enum):
+    ANSWERED = "answered"
+    UNSUPPORTED = "unsupported"
+    REFUSED = "refused"
+
+
 class AssessRequest(StrictModel):
     nct_id: str
     mode: AssessmentMode = AssessmentMode.PROSPECTIVE
@@ -182,6 +188,49 @@ class UsageSummary(StrictModel):
     output_tokens: int = Field(default=0, ge=0)
     estimated_cost_usd: Optional[float] = Field(default=None, ge=0)
     pricing_basis: str = "Token counts measured; pricing not configured."
+
+
+class ChatRequest(StrictModel):
+    message: str = Field(min_length=1, max_length=500)
+
+
+class ChatAgentOutput(StrictModel):
+    """Structured model output before deterministic release checks."""
+
+    answer: str = Field(min_length=1, max_length=1_200)
+    evidence_ids: List[str] = Field(max_length=5)
+    numeric_fact_ids: List[str] = Field(max_length=5)
+
+
+class ChatSource(StrictModel):
+    evidence_id: str
+    nct_id: str
+    title: Optional[str] = None
+    source_url: str
+
+
+class ChatTraceMetadata(StrictModel):
+    stage: str = "report_chat"
+    status: str
+    duration_ms: int = Field(default=0, ge=0)
+    provider: str
+    model_id: Optional[str] = None
+    input_tokens: Optional[int] = Field(default=None, ge=0)
+    output_tokens: Optional[int] = Field(default=None, ge=0)
+    guardrail_action: Optional[str] = None
+
+
+class ChatResponse(StrictModel):
+    run_id: str
+    turn: int = Field(ge=1, le=5)
+    disposition: ChatDisposition
+    answer: str
+    evidence_ids: List[str] = Field(default_factory=list)
+    numeric_fact_ids: List[str] = Field(default_factory=list)
+    sources: List[ChatSource] = Field(default_factory=list)
+    checks: List[CheckResult] = Field(default_factory=list)
+    trace: ChatTraceMetadata
+    usage: UsageSummary = Field(default_factory=UsageSummary)
 
 
 class AssessmentReport(StrictModel):
