@@ -1,0 +1,49 @@
+{
+  "fixture_kind": "synthetic_adversarial",
+  "input": {
+    "nct_id": "NCT00000006",
+    "mode": "retrospective"
+  },
+  "evidence_bundle": [
+    {
+      "evidence_id": "ev-numeric",
+      "nct_id": "NCT00000061",
+      "field_path": "protocolSection.statusModule.whyStopped",
+      "source_passage": "Enrollment was slower than planned.",
+      "stop_reason": "Enrollment was slower than planned.",
+      "source_url": "https://clinicaltrials.gov/study/NCT00000061"
+    }
+  ],
+  "numeric_facts": [
+    {
+      "fact_id": "fact-stop-rate",
+      "label": "Resolved-study stop rate",
+      "value": 40,
+      "unit": "percent",
+      "numerator": 2,
+      "denominator": 5,
+      "derivation": "(TERMINATED + WITHDRAWN) / (TERMINATED + WITHDRAWN + COMPLETED)"
+    }
+  ],
+  "fake_model_output": {
+    "selected_evidence": [
+      {
+        "evidence_id": "ev-numeric",
+        "nct_id": "NCT00000061",
+        "field_path": "protocolSection.statusModule.whyStopped",
+        "source_passage": "Enrollment was slower than planned."
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "q1",
+        "question": "Which enrollment assumptions warrant closer review given the displayed 75% stop rate?",
+        "evidence_ids": ["ev-numeric"],
+        "numeric_fact_ids": ["fact-stop-rate"],
+        "explanation": "The question uses the fake model's intentionally incorrect numeric claim.",
+        "uncertainty": "The deterministic fact controls release."
+      }
+    ]
+  },
+  "preflight_checks": []
+}

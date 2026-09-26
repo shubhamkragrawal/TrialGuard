@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+
+{% set release_state = report.release_state|default("blocked", true)|lower|replace("_", "-") %}
+{% set trial = report.trial %}
+{% set cohort = report.cohort %}
+{% set challenge = report.challenge %}
+
+{% block title %}{{ trial.nct_id|default("Trial review", true) }} · TrialGuard{% endblock %}
+{% block body_class %}page-report release-{{ release_state }}{% endblock %}
+
+{% block context_bar %}
+  <div class="context-bar">
+    <div class="shell context-bar__inner">
+      <a class="back-link" href="/">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        New review
+      </a>
+      <div class="run-context">
+        {% if trial.cache_hit or report.is_cached or report.cache_status in ["hit", "cached", "replay"] %}
+          <span class="status-pill status-pill--cached">
+            <span class="status-dot" aria-hidden="true"></span>
+            Cached replay
+          </span>
+        {% else %}
+          <span class="status-pill status-pill--live">
+            <span class="status-dot" aria-hidden="true"></span>
+            Live retrieval
+          </span>
+        {% endif %}
+        {% if report.run_id %}
+          <span class="run-id">Run {{ report.run_id }}</span>
+          <button class="icon-button" type="button" data-copy-url aria-label="Copy link to this run">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 8h10v12H9z"/><path d="M5 16H4V4h10v1"/></svg>
+          </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div class="shell report-shell">
+    <header class="report-header">
+      <div class="report-title">
+        <div class="report-title__meta">
+          <span class="eyebrow">Checked evidence review</span>
+          {% if report.mode %}
+            <span class="mode-chip">{{ report.mode|capitalize }} framing</span>
+          {% endif %}
+        </div>
+        <h1>{{ trial.brief_title|default(trial.official_title, true)|default(trial.title, true)|default("Registered trial", true) }}</h1>
+        <div class="trial-identity">
+          <a href="{{ trial.source_url }}" target="_blank" rel="noopener noreferrer">
+            {{ trial.nct_id }}
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M10 14 19 5M19 13v6H5V5h6"/></svg>
+          </a>
+          {% if trial.overall_status or trial.status %}
+            <span class="trial-status">{{ trial.overall_status|default(trial.status, true)|replace("_", " ")|title }}</span>
+          {% endif %}
+          {% if trial.phase %}
+            <span>{{ trial.phase|join(", ")|replace("_", " ")|title }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="release-card release-card--{{ release_state }}" role="{% if release_state == 'blocked' %}alert{% else %}status{% endif %}">
+        <div class="release-icon" aria-hidden="true">
+          {% if release_state in ["approved", "released", "full"] %}
+            <svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="11"/><path d="m9 14 3.2 3.2L19 10"/></svg>
+          {% elif release_state == "partial" %}
+            <svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="11"/><path d="M14 8v7M14 19v1"/></svg>
+          {% else %}
+            <svg viewBox="0 0 28 28"><path d="M14 3 25 23H3L14 3Z"/><path d="M14 10v6M14 20v.1"/></svg>
+          {% endif %}
+        </div>
+        <div>
+          <span class="release-card__label">Release gate</span>
+          <strong>
+            {% if release_state in ["approved", "released", "full"] %}
+              Approved for review
+            {% elif release_state == "partial" %}
+              Partially released
+            {% else %}
+              Output blocked
+            {% endif %}
+          </strong>
+          <p>
+            {% if release_state in ["approved", "released", "full"] %}
+              Citations, numeric facts, schema, and wording checks passed.
+            {% elif release_state == "partial" %}
+              Supported sections are visible; unresolved content remains blocked.
+            {% else %}
+              One or more release conditions were not met. Do not rely on generated content.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </header>
+
+    {% if trial.cache_hit or report.is_cached or report.cache_status in ["hit", "cached", "replay"] %}
+      <aside class="cache-banner" aria-label="Cached demonstration notice">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7c0 2 3.6 3.5 8 3.5S20 9 20 7s-3.6-3.5-8-3.5S4 5 4 7Z"/><path d="M4 7v5c0 2 3.6 3.5 8 3.5s8-1.5 8-3.5V7M4 12v5c0 2 3.6 3.5 8 3.5s8-1.5 8-3.5v-5"/></svg>
+        <div>
+          <strong>Cached demonstration</strong>
+          <span>
+            This checked run is a replay, not a new model or registry request.
+            Source data were retrieved
+            <time datetime="{{ report.source_retrieved_at|default(trial.retrieved_at, true) }}">
+              {{ report.source_retrieved_display|default(trial.retrieved_at_display, true)|default(report.source_retrieved_at, true)|default(trial.retrieved_at, true) }}
+            </time>.
+          </span>
+        </div>
+      </aside>
+    {% endif %}
+
+    {% if report.notice %}
+      <div class="inline-alert inline-alert--{{ report.notice.level|default('info') }}" role="status">
+        <strong>{{ report.notice.title }}</strong>
+        <span>{{ report.notice.message }}</span>
+      </div>
+    {% endif %}
+
+    <div class="report-layout">
+      <div class="report-main">
+        <section class="report-section" aria-labelledby="trial-summary-title">
+          <div class="section-kicker">
+            <span>01</span>
+            <div>
+              <span class="eyebrow">Target record</span>
+              <h2 id="trial-summary-title">Trial at a glance</h2>
+            </div>
+          </div>
+
+          <div class="fact-grid">
+            <div class="fact-card fact-card--wide">
+              <span class="fact-label">Conditions</span>
+              <div class="tag-list">
+                {% for condition in trial.conditions|default([], true) %}
+                  <span>{{ condition }}</span>
+                {% else %}
+                  <span class="tag-muted">Not reported</span>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="fact-card">
+              <span class="fact-label">Intervention type</span>
+              <strong>
+                {% if trial.intervention_types %}
+                  {{ trial.intervention_types|join(", ") }}
+                {% else %}
+                  Not reported
+                {% endif %}
+              </strong>
+            </div>
+            <div class="fact-card">
+              <span class="fact-label">Study design</span>
+              <strong>{{ trial.design_summary|default(trial.study_type, true)|default("Not reported", true) }}</strong>
+            </div>
+            <div class="fact-card">
+              <span class="fact-label">Source freshness</span>
+              <strong>{{ trial.retrieved_at_display|default(trial.retrieved_at, true)|default("Unavailable", true) }}</strong>
+              <small>ClinicalTrials.gov retrieval</small>
+            </div>
+            <div class="fact-card">
+              <span class="fact-label">Record completeness</span>
+              {% if trial.missing_fields %}
+                <strong>{{ trial.missing_fields|length }} field{% if trial.missing_fields|length != 1 %}s{% endif %} unavailable</strong>
+                <small>{{ trial.missing_fields|join(", ") }}</small>
+              {% else %}
+                <strong>Required fields present</strong>
+                <small>Based on the application allowlist</small>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+
+        <section class="report-section" aria-labelledby="cohort-title">
+          <div class="section-kicker">
+            <span>02</span>
+            <div>
+              <span class="eyebrow">Deterministic context</span>
+              <h2 id="cohort-title">Comparison cohort</h2>
+            </div>
+          </div>
+
+          <div class="cohort-panel">
+            <div class="cohort-panel__header">
+              <div>
+                <span class="completeness-state completeness-state--{% if cohort.pagination_complete %}complete{% else %}incomplete{% endif %}">
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    {% if cohort.pagination_complete %}
+                      <path d="m4 10 4 4 8-9"/>
+                    {% else %}
+                      <path d="M10 3v8M10 15v.1"/><circle cx="10" cy="10" r="8"/>
+                    {% endif %}
+                  </svg>
+                  {% if cohort.pagination_complete %}Complete retrieval{% else %}Incomplete retrieval{% endif %}
+                </span>
+                <p>
+                  {{ cohort.records_retrieved|default(0) }} matching public records retrieved
+                  {% if cohort.retrieved_at_display or cohort.retrieved_at %}
+                    · {{ cohort.retrieved_at_display|default(cohort.retrieved_at, true) }}
+                  {% endif %}
+                </p>
+              </div>
+              {% if cohort.pagination_complete and cohort.resolved_stop_rate is defined and cohort.resolved_stop_rate is not none %}
+                <div class="rate-block">
+                  <span>Resolved-study stop rate</span>
+                  <strong>{{ cohort.stop_rate_display|default("%.1f%%"|format(cohort.resolved_stop_rate * 100), true) }}</strong>
+                  <small>
+                    {{ cohort.denominator }} resolved studies in denominator
+                  </small>
+                </div>
+              {% else %}
+                <div class="rate-block rate-block--withheld">
+                  <span>Resolved-study stop rate</span>
+                  <strong>Withheld</strong>
+                  <small>Requires complete cohort retrieval</small>
+                </div>
+              {% endif %}
+            </div>
+
+            {% if cohort.status_counts %}
+              <div class="count-grid" aria-label="Cohort status counts">
+                {% for status, count in cohort.status_counts.items() %}
+                  <div class="count-item">
+                    <span class="count-bar count-bar--{{ status|lower|replace('_', '-') }}" aria-hidden="true"></span>
+                    <strong>{{ count }}</strong>
+                    <span>{{ status|replace("_", " ")|title }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if cohort.filters %}
+              <div class="filter-row">
+                <span class="fact-label">Applied filters</span>
+                <div class="tag-list">
+                  {% for label, value in cohort.filters.items() %}
+                    <span><b>{{ label|replace("_", " ")|title }}:</b> {% if value is iterable and value is not string %}{{ value|join(", ") }}{% else %}{{ value }}{% endif %}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+
+            {% if cohort.limitations %}
+              <ul class="limitation-list">
+                {% for limitation in cohort.limitations %}
+                  <li>{{ limitation }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </section>
+
+        <section class="report-section" aria-labelledby="precedents-title">
+          <div class="section-kicker">
+            <span>03</span>
+            <div>
+              <span class="eyebrow">Registry evidence</span>
+              <h2 id="precedents-title">Comparable stopped trials</h2>
+            </div>
+          </div>
+
+          {% if report.precedents %}
+            <div class="precedent-list">
+              {% for precedent in report.precedents %}
+                <article class="precedent-card" id="evidence-{{ precedent.evidence_id }}">
+                  <div class="precedent-card__topline">
+                    <span class="evidence-index">E{{ "%02d"|format(loop.index) }}</span>
+                    <a href="{{ precedent.source_url }}" target="_blank" rel="noopener noreferrer">
+                      {{ precedent.nct_id }}
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M10 14 19 5M19 13v6H5V5h6"/></svg>
+                    </a>
+                    {% if precedent.similarity_score is defined and precedent.similarity_score is not none %}
+                      <span class="match-score">{{ precedent.similarity_display|default(precedent.similarity_score, true) }} match</span>
+                    {% endif %}
+                  </div>
+                  <h3>{{ precedent.title|default("Registered trial", true) }}</h3>
+                  {% if precedent.relevance_summary or precedent.relevance_reason %}
+                    <p class="relevance-copy">{{ precedent.relevance_summary|default(precedent.relevance_reason, true) }}</p>
+                  {% endif %}
+                  <blockquote>
+                    <span class="quote-label">Registry stop reason</span>
+                    “{{ precedent.why_stopped|default(precedent.source_passage, true)|default("No reason reported", true) }}”
+                  </blockquote>
+                  <div class="source-line">
+                    <span>{{ precedent.field_path|default("protocolSection.statusModule.whyStopped", true) }}</span>
+                    {% if precedent.retrieved_at_display or precedent.retrieval_timestamp %}
+                      <span>Retrieved {{ precedent.retrieved_at_display|default(precedent.retrieval_timestamp, true) }}</span>
+                    {% endif %}
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-state__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32"><circle cx="14" cy="14" r="8"/><path d="m20 20 7 7M11 14h6"/></svg>
+              </div>
+              <h3>Insufficient comparable evidence</h3>
+              <p>No stopped trials met the bounded relevance and sourcing requirements. TrialGuard will not fabricate precedents.</p>
+            </div>
+          {% endif %}
+        </section>
+
+        <section class="report-section" aria-labelledby="questions-title">
+          <div class="section-kicker">
+            <span>04</span>
+            <div>
+              <span class="eyebrow">For qualified human review</span>
+              <h2 id="questions-title">Questions to examine</h2>
+            </div>
+          </div>
+
+          {% if report.questions and release_state != "blocked" %}
+            <ol class="question-list">
+              {% for question in report.questions %}
+                <li class="question-card {% if question.release_state == 'blocked' %}question-card--blocked{% endif %}">
+                  <span class="question-number">{{ "%02d"|format(loop.index) }}</span>
+                  <div class="question-card__body">
+                    {% if question.release_state == "blocked" %}
+                      <span class="status-pill status-pill--blocked">Section blocked</span>
+                    {% endif %}
+                    <h3>{{ question.question|default(question.text, true) }}</h3>
+                    {% if question.explanation %}
+                      <p>{{ question.explanation }}</p>
+                    {% endif %}
+                    {% if question.uncertainty %}
+                      <p class="uncertainty"><strong>Uncertainty:</strong> {{ question.uncertainty }}</p>
+                    {% endif %}
+                    <div class="reference-row">
+                      {% for evidence_id in question.evidence_ids|default([], true) %}
+                        <a href="#evidence-{{ evidence_id }}">{{ evidence_id }}</a>
+                      {% endfor %}
+                      {% for fact_id in question.numeric_fact_ids|default([], true) %}
+                        <span class="fact-reference">{{ fact_id }}</span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ol>
+          {% elif release_state == "blocked" %}
+            <div class="blocked-content">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4 28 26H4L16 4Z"/><path d="M16 12v7M16 23v.1"/></svg>
+              <div>
+                <h3>Review questions were not released</h3>
+                <p>The release gate found unresolved support, numeric, or wording issues. Inspect the findings and checks below.</p>
+              </div>
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <h3>No supported questions generated</h3>
+              <p>The available public evidence was too sparse to form a grounded review question.</p>
+            </div>
+          {% endif %}
+        </section>
+      </div>
+
+      <aside class="report-sidebar" aria-label="Review and validation">
+        <section class="sidebar-card sidebar-card--challenge">
+          <div class="sidebar-card__heading">
+            <div class="agent-avatar agent-avatar--challenge" aria-hidden="true">C</div>
+            <div>
+              <span class="eyebrow">Challenge agent</span>
+              <h2>{{ challenge.action|default("Not run", true)|capitalize }}</h2>
+            </div>
+            <span class="decision-indicator decision-indicator--{{ challenge.action|default('not-run')|lower }}"></span>
+          </div>
+          {% if challenge.summary %}
+            <p class="challenge-summary">{{ challenge.summary }}</p>
+          {% endif %}
+          {% if challenge.findings %}
+            <ul class="finding-list">
+              {% for finding in challenge.findings %}
+                <li class="finding finding--{{ finding.severity|default('info')|lower }}">
+                  <span class="finding-marker" aria-hidden="true"></span>
+                  <div>
+                    <strong>{{ finding.title|default(finding.finding_id, true)|default("Review finding", true)|replace("_", " ")|title }}</strong>
+                    <p>{{ finding.detail|default(finding.message, true)|default(finding.reason, true) }}</p>
+                    {% if finding.requested_correction %}
+                      <p><strong>Requested correction:</strong> {{ finding.requested_correction }}</p>
+                    {% endif %}
+                    {% if finding.affected_question_ids %}
+                      <small>Affects {{ finding.affected_question_ids|join(", ") }}</small>
+                    {% endif %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% elif challenge.action == "approve" %}
+            <p class="no-findings">No unresolved challenge findings.</p>
+          {% endif %}
+          <div class="revision-row">
+            <span>Revision cycles</span>
+            <strong>{{ report.revision_count|default(0) }} / 1</strong>
+          </div>
+        </section>
+
+        <section class="sidebar-card">
+          <div class="sidebar-card__heading sidebar-card__heading--compact">
+            <div>
+              <span class="eyebrow">Deterministic gates</span>
+              <h2>Release checks</h2>
+            </div>
+            {% if report.check_summary %}
+              <span class="check-total">{{ report.check_summary.passed|default(0) }}/{{ report.check_summary.total|default(report.checks|length, true) }}</span>
+            {% endif %}
+          </div>
+
+          <ul class="check-list">
+            {% for check in report.checks|default([], true) %}
+              <li>
+                <span class="check-icon check-icon--{{ check.status|default('not-run')|lower|replace('_', '-') }}" aria-hidden="true">
+                  {% if check.status in ["passed", "pass"] %}
+                    <svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-9"/></svg>
+                  {% elif check.status in ["failed", "fail", "blocked"] %}
+                    <svg viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg>
+                  {% else %}
+                    <svg viewBox="0 0 20 20"><path d="M6 10h8"/></svg>
+                  {% endif %}
+                </span>
+                <div>
+                  <strong>{{ check.label|default(check.name, true)|default(check.check_name, true)|replace("_", " ")|title }}</strong>
+                  {% if check.reason %}
+                    <small>{{ check.reason }}</small>
+                  {% endif %}
+                </div>
+                <span class="check-status">{{ check.status|default("not run", true)|replace("_", " ")|title }}</span>
+              </li>
+            {% else %}
+              <li class="check-empty">No deterministic check results available.</li>
+            {% endfor %}
+          </ul>
+        </section>
+
+        <details class="sidebar-card trace-card">
+          <summary>
+            <span>
+              <span class="eyebrow">Inspectable, not hidden reasoning</span>
+              <strong>Execution trace</strong>
+            </span>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5"/></svg>
+          </summary>
+          <div class="trace-summary">
+            {% if report.duration_display or report.duration_ms %}
+              <div><span>Total time</span><strong>{{ report.duration_display|default((report.duration_ms|string) ~ " ms", true) }}</strong></div>
+            {% endif %}
+            {% if report.model_call_count is defined and report.model_call_count is not none %}
+              <div><span>Model calls</span><strong>{{ report.model_call_count }} / 8</strong></div>
+            {% endif %}
+          </div>
+          <ol class="trace-list">
+            {% for event in report.trace|default([], true) %}
+              <li>
+                <span class="trace-node trace-node--{{ event.status|default('unknown')|lower }}"></span>
+                <div>
+                  <div class="trace-event__title">
+                    <strong>{{ event.stage|replace("_", " ")|title }}</strong>
+                    {% if event.duration_display or event.duration_ms %}
+                      <span>{{ event.duration_display|default((event.duration_ms|string) ~ " ms", true) }}</span>
+                    {% endif %}
+                  </div>
+                  <p>
+                    {{ event.summary|default(event.message, true)|default(event.status, true)|replace("_", " ")|capitalize }}
+                    {% if event.cache_hit %} · cache hit{% endif %}
+                  </p>
+                  {% if event.model_id %}
+                    <small>
+                      {{ event.model_id }}
+                      {% if event.token_count %} · {{ event.token_count }} tokens
+                      {% elif event.input_tokens or event.output_tokens %} · {{ event.input_tokens|default(0, true) + event.output_tokens|default(0, true) }} tokens
+                      {% endif %}
+                    </small>
+                  {% endif %}
+                </div>
+              </li>
+            {% else %}
+              <li class="trace-empty">No trace metadata available.</li>
+            {% endfor %}
+          </ol>
+        </details>
+
+        <section class="sidebar-note">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v.1"/></svg>
+          <div>
+            <strong>Read with the source</strong>
+            <p>Registry records are incomplete and self-reported. Similarity is not causation.</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    {% if report.limitations %}
+      <section class="report-limitations" aria-labelledby="limitations-title">
+        <div>
+          <span class="eyebrow">Before using this review</span>
+          <h2 id="limitations-title">Limitations</h2>
+        </div>
+        <ul>
+          {% for limitation in report.limitations %}
+            <li>{{ limitation }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  </div>
+{% endblock %}

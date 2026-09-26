@@ -1,0 +1,132 @@
+{
+  "totalCount": 6,
+  "nextPageToken": "page-2",
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT00000002",
+          "briefTitle": "Stopped Glioblastoma Study A"
+        },
+        "statusModule": {
+          "overallStatus": "TERMINATED",
+          "whyStopped": "Enrollment was slower than planned."
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": [
+            "PHASE2"
+          ],
+          "designInfo": {
+            "allocation": "RANDOMIZED",
+            "interventionModel": "PARALLEL",
+            "primaryPurpose": "TREATMENT",
+            "maskingInfo": {
+              "masking": "DOUBLE"
+            }
+          },
+          "enrollmentInfo": {
+            "count": 42,
+            "type": "ACTUAL"
+          }
+        },
+        "conditionsModule": {
+          "conditions": [
+            "Glioblastoma"
+          ]
+        },
+        "armsInterventionsModule": {
+          "interventions": [
+            {
+              "type": "DRUG",
+              "name": "Synthetic Compound B"
+            }
+          ]
+        },
+        "contactsLocationsModule": {
+          "centralContacts": [
+            {
+              "email": "must-not-be-normalized@example.org"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT00000003",
+          "briefTitle": "Completed Glioblastoma Study"
+        },
+        "statusModule": {
+          "overallStatus": "COMPLETED"
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": [
+            "PHASE2"
+          ],
+          "designInfo": {
+            "allocation": "RANDOMIZED",
+            "interventionModel": "PARALLEL",
+            "primaryPurpose": "TREATMENT",
+            "maskingInfo": {
+              "masking": "DOUBLE"
+            }
+          }
+        },
+        "conditionsModule": {
+          "conditions": [
+            "Glioblastoma"
+          ]
+        },
+        "armsInterventionsModule": {
+          "interventions": [
+            {
+              "type": "DRUG"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT00000004",
+          "briefTitle": "Stopped Glioblastoma Study B"
+        },
+        "statusModule": {
+          "overallStatus": "WITHDRAWN",
+          "whyStopped": "Funding was not available to initiate enrollment."
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": [
+            "PHASE1",
+            "PHASE2"
+          ],
+          "designInfo": {
+            "allocation": "NON_RANDOMIZED",
+            "interventionModel": "SINGLE_GROUP",
+            "primaryPurpose": "TREATMENT",
+            "maskingInfo": {
+              "masking": "NONE"
+            }
+          }
+        },
+        "conditionsModule": {
+          "conditions": [
+            "Glioblastoma"
+          ]
+        },
+        "armsInterventionsModule": {
+          "interventions": [
+            {
+              "type": "DRUG"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

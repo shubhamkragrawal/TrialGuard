@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error.title|default("Unable to complete review", true) }} · TrialGuard{% endblock %}
+{% block body_class %}page-system-state{% endblock %}
+
+{% block content %}
+  <section class="system-state">
+    <div class="shell system-state__shell">
+      <div class="state-illustration state-illustration--error" aria-hidden="true">
+        <span class="state-orbit state-orbit--one"></span>
+        <span class="state-orbit state-orbit--two"></span>
+        <svg viewBox="0 0 72 72"><path d="M36 8 64 59H8L36 8Z"/><path d="M36 25v17M36 50v1"/></svg>
+      </div>
+      <div class="state-copy">
+        <span class="eyebrow">{{ error.code|default("Review unavailable", true) }}</span>
+        <h1>{{ error.title|default("We couldn’t complete this review.", true) }}</h1>
+        <p>{{ error.message|default("The request stopped safely before a checked report could be released.", true) }}</p>
+        {% if error.detail %}
+          <div class="state-detail">
+            <strong>What happened</strong>
+            <p>{{ error.detail }}</p>
+          </div>
+        {% endif %}
+        <div class="state-actions">
+          <a class="button button--primary" href="{{ error.action_href|default('/', true) }}">
+            {{ error.action_label|default("Try another NCT ID", true) }}
+          </a>
+          <a class="button button--secondary" href="/evaluation">View evaluation</a>
+        </div>
+        {% if error.request_id %}
+          <p class="request-reference">Request reference <span>{{ error.request_id }}</span></p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

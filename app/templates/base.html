@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#0b2533">
+  <meta
+    name="description"
+    content="{{ meta_description|default('Evidence-linked operational review questions from selected public ClinicalTrials.gov fields.', true) }}"
+  >
+  <title>{% block title %}{{ page_title|default("TrialGuard", true) }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/js/app.js" defer></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="TrialGuard home">
+        <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true">
+          <path d="M22 3.5 37 9v11.3c0 9.4-6.3 16.3-15 20.2-8.7-3.9-15-10.8-15-20.2V9l15-5.5Z"/>
+          <path d="M14.5 22.3h4.7l2.1-6.2 3.3 11.7 2.1-5.5h3.1"/>
+        </svg>
+        <span class="brand-copy">
+          <span class="brand-name">TrialGuard</span>
+          <span class="brand-tagline">Evidence before inference</span>
+        </span>
+      </a>
+
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="/" {% if active_page == "home" %}aria-current="page"{% endif %}>New review</a>
+        <a href="/evaluation" {% if active_page == "evaluation" %}aria-current="page"{% endif %}>Evaluation</a>
+        {% if runtime %}
+          <span class="runtime-state runtime-state--{{ runtime.status|default('unknown')|lower }}">
+            <span class="runtime-dot" aria-hidden="true"></span>
+            {{ runtime.label|default("Runtime status unknown", true) }}
+          </span>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% block context_bar %}{% endblock %}
+
+  <main id="main-content" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <div>
+        <span class="footer-wordmark">TrialGuard</span>
+        <p>Selected public registry evidence, organized for qualified human review.</p>
+      </div>
+      <div class="footer-boundary">
+        <span class="eyebrow">Intended-use boundary</span>
+        <p>
+          Hackathon decision-support demonstration. Not clinical, regulatory,
+          legal, or medical advice. TrialGuard does not predict trial outcomes.
+        </p>
+      </div>
+      <a class="footer-link" href="https://clinicaltrials.gov/" target="_blank" rel="noopener noreferrer">
+        ClinicalTrials.gov
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </footer>
+
+  <div class="toast" role="status" aria-live="polite" aria-atomic="true" data-toast hidden></div>
+</body>
+</html>

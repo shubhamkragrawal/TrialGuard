@@ -1,0 +1,93 @@
+{
+  "totalCount": 6,
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT00000005",
+          "briefTitle": "Second Completed Glioblastoma Study"
+        },
+        "statusModule": {
+          "overallStatus": "COMPLETED"
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": [
+            "PHASE2"
+          ]
+        },
+        "conditionsModule": {
+          "conditions": [
+            "Glioblastoma"
+          ]
+        },
+        "armsInterventionsModule": {
+          "interventions": [
+            {
+              "type": "DRUG"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT00000006",
+          "briefTitle": "Suspended Glioblastoma Study"
+        },
+        "statusModule": {
+          "overallStatus": "SUSPENDED",
+          "whyStopped": "Temporary operational pause."
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": [
+            "PHASE2"
+          ]
+        },
+        "conditionsModule": {
+          "conditions": [
+            "Glioblastoma"
+          ]
+        },
+        "armsInterventionsModule": {
+          "interventions": [
+            {
+              "type": "DRUG"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT00000007",
+          "briefTitle": "Recruiting Glioblastoma Study"
+        },
+        "statusModule": {
+          "overallStatus": "RECRUITING"
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": [
+            "PHASE2"
+          ]
+        },
+        "conditionsModule": {
+          "conditions": [
+            "Glioblastoma"
+          ]
+        },
+        "armsInterventionsModule": {
+          "interventions": [
+            {
+              "type": "DRUG"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

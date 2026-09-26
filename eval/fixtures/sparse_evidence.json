@@ -1,0 +1,22 @@
+{
+  "fixture_kind": "synthetic_offline",
+  "input": {
+    "nct_id": "NCT00000002",
+    "mode": "retrospective"
+  },
+  "evidence_bundle": [],
+  "numeric_facts": [],
+  "fake_model_output": {
+    "selected_evidence": [],
+    "questions": [],
+    "message": "Insufficient evidence to generate evidence-linked review questions."
+  },
+  "preflight_checks": [
+    {
+      "check_name": "evidence_sufficiency",
+      "status": "not_run",
+      "affected_item": "precedents",
+      "reason": "No comparable stopped trials were present in the bounded synthetic bundle."
+    }
+  ]
+}

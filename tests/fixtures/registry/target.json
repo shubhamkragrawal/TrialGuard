@@ -1,0 +1,67 @@
+{
+  "protocolSection": {
+    "identificationModule": {
+      "nctId": "NCT00000001",
+      "briefTitle": "Phase 2 Study in Glioblastoma"
+    },
+    "statusModule": {
+      "overallStatus": "RECRUITING",
+      "startDateStruct": {
+        "date": "2026-01"
+      },
+      "completionDateStruct": {
+        "date": "2028-06"
+      }
+    },
+    "designModule": {
+      "studyType": "INTERVENTIONAL",
+      "phases": [
+        "PHASE2"
+      ],
+      "designInfo": {
+        "allocation": "RANDOMIZED",
+        "interventionModel": "PARALLEL",
+        "primaryPurpose": "TREATMENT",
+        "maskingInfo": {
+          "masking": "DOUBLE"
+        }
+      },
+      "enrollmentInfo": {
+        "count": 120,
+        "type": "ESTIMATED"
+      }
+    },
+    "conditionsModule": {
+      "conditions": [
+        "Glioblastoma"
+      ]
+    },
+    "armsInterventionsModule": {
+      "interventions": [
+        {
+          "type": "DRUG",
+          "name": "Synthetic Compound A"
+        }
+      ]
+    },
+    "contactsLocationsModule": {
+      "centralContacts": [
+        {
+          "name": "Private Contact",
+          "email": "private-contact@example.org",
+          "phone": "+1-555-0100"
+        }
+      ],
+      "overallOfficials": [
+        {
+          "name": "Named Investigator"
+        }
+      ]
+    },
+    "sponsorCollaboratorsModule": {
+      "responsibleParty": {
+        "investigatorFullName": "Named Responsible Person"
+      }
+    }
+  }
+}

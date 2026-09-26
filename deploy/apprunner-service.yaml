@@ -1,0 +1,237 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: TrialGuard public App Runner service backed by a private ECR image.
+
+Parameters:
+  ServiceName:
+    Type: String
+    Default: trialguard
+    AllowedPattern: "^[A-Za-z0-9][A-Za-z0-9-_]{3,39}$"
+  ImageIdentifier:
+    Type: String
+    Description: Full private ECR image URI, preferably pinned with @sha256 digest.
+  EcrRepositoryArn:
+    Type: String
+    AllowedPattern: "^arn:[a-z0-9-]+:ecr:[a-z0-9-]+:[0-9]{12}:repository/.+$"
+    Description: Exact repository ARN from the ECR stack.
+  BedrockResourceArns:
+    Type: CommaDelimitedList
+    Description: Exact model, inference-profile, or provisioned-throughput ARNs.
+  BedrockModelId:
+    Type: String
+    MinLength: 1
+  BedrockChallengeModelId:
+    Type: String
+    MinLength: 1
+  BedrockGuardrailId:
+    Type: String
+    Default: ""
+  BedrockGuardrailVersion:
+    Type: String
+    Default: ""
+  DailyLiveAssessmentLimit:
+    Type: Number
+    Default: 50
+    MinValue: 1
+    MaxValue: 1000
+  RateLimitRequestsPerMinute:
+    Type: Number
+    Default: 5
+    MinValue: 1
+    MaxValue: 60
+  ModelTimeoutSeconds:
+    Type: Number
+    Default: 30
+    MinValue: 5
+    MaxValue: 60
+
+Resources:
+  EcrAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Allows App Runner to pull only the TrialGuard image.
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - build.apprunner.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: TrialGuardEcrRead
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: EcrAuthorization
+                Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                Resource: "*"
+              - Sid: ReadTrialGuardRepository
+                Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:BatchGetImage
+                  - ecr:DescribeImages
+                  - ecr:GetDownloadUrlForLayer
+                Resource:
+                  Ref: EcrRepositoryArn
+      Tags:
+        - Key: Project
+          Value: TrialGuard
+
+  BedrockInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Least-privilege Bedrock inference role for TrialGuard runtime.
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - tasks.apprunner.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: TrialGuardBedrockInvoke
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: InvokeApprovedBedrockResources
+                Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource:
+                  Ref: BedrockResourceArns
+      Tags:
+        - Key: Project
+          Value: TrialGuard
+
+  AutoScaling:
+    Type: AWS::AppRunner::AutoScalingConfiguration
+    Properties:
+      MaxConcurrency: 10
+      MaxSize: 2
+      MinSize: 1
+      Tags:
+        - Key: Project
+          Value: TrialGuard
+
+  Service:
+    Type: AWS::AppRunner::Service
+    Properties:
+      ServiceName:
+        Ref: ServiceName
+      AutoScalingConfigurationArn:
+        Fn::GetAtt:
+          - AutoScaling
+          - AutoScalingConfigurationArn
+      SourceConfiguration:
+        AutoDeploymentsEnabled: false
+        AuthenticationConfiguration:
+          AccessRoleArn:
+            Fn::GetAtt:
+              - EcrAccessRole
+              - Arn
+        ImageRepository:
+          ImageIdentifier:
+            Ref: ImageIdentifier
+          ImageRepositoryType: ECR
+          ImageConfiguration:
+            Port: "8000"
+            RuntimeEnvironmentVariables:
+              - Name: TRIALGUARD_ENV
+                Value: production
+              - Name: TRIALGUARD_AWS_REGION
+                Value:
+                  Ref: AWS::Region
+              - Name: TRIALGUARD_BEDROCK_MODEL_ID
+                Value:
+                  Ref: BedrockModelId
+              - Name: TRIALGUARD_BEDROCK_CHALLENGE_MODEL_ID
+                Value:
+                  Ref: BedrockChallengeModelId
+              - Name: TRIALGUARD_BEDROCK_GUARDRAIL_ID
+                Value:
+                  Ref: BedrockGuardrailId
+              - Name: TRIALGUARD_BEDROCK_GUARDRAIL_VERSION
+                Value:
+                  Ref: BedrockGuardrailVersion
+              - Name: TRIALGUARD_LIVE_BEDROCK_ENABLED
+                Value: "true"
+              - Name: TRIALGUARD_REGISTRY_BASE_URL
+                Value: https://clinicaltrials.gov
+              - Name: TRIALGUARD_MODEL_CALL_LIMIT
+                Value: "8"
+              - Name: TRIALGUARD_MAX_REVISIONS
+                Value: "1"
+              - Name: TRIALGUARD_REPORT_TIMEOUT_SECONDS
+                Value: "90"
+              - Name: TRIALGUARD_MODEL_TIMEOUT_SECONDS
+                Value:
+                  Ref: ModelTimeoutSeconds
+              - Name: TRIALGUARD_RATE_LIMIT_REQUESTS_PER_MINUTE
+                Value:
+                  Ref: RateLimitRequestsPerMinute
+              - Name: TRIALGUARD_DAILY_LIVE_RUN_LIMIT
+                Value:
+                  Ref: DailyLiveAssessmentLimit
+              - Name: TRIALGUARD_ALLOW_CACHED_DEMOS
+                Value: "true"
+              - Name: TRIALGUARD_LOG_PAYLOADS
+                Value: "false"
+              - Name: TRIALGUARD_CACHE_DIR
+                Value: /var/lib/trialguard/cache
+              - Name: TRIALGUARD_RUNS_DIR
+                Value: /var/lib/trialguard/runs
+      InstanceConfiguration:
+        Cpu: "1 vCPU"
+        Memory: "2 GB"
+        InstanceRoleArn:
+          Fn::GetAtt:
+            - BedrockInstanceRole
+            - Arn
+      HealthCheckConfiguration:
+        Protocol: HTTP
+        Path: /health
+        Interval: 10
+        Timeout: 5
+        HealthyThreshold: 1
+        UnhealthyThreshold: 5
+      NetworkConfiguration:
+        EgressConfiguration:
+          EgressType: DEFAULT
+        IngressConfiguration:
+          IsPubliclyAccessible: true
+        IpAddressType: IPV4
+      Tags:
+        - Key: Project
+          Value: TrialGuard
+        - Key: Environment
+          Value: hackathon
+
+Outputs:
+  ServiceArn:
+    Value:
+      Fn::GetAtt:
+        - Service
+        - ServiceArn
+  ServiceUrl:
+    Description: Public HTTPS hostname generated by App Runner.
+    Value:
+      Fn::GetAtt:
+        - Service
+        - ServiceUrl
+  BedrockInstanceRoleArn:
+    Value:
+      Fn::GetAtt:
+        - BedrockInstanceRole
+        - Arn
+  EcrAccessRoleArn:
+    Value:
+      Fn::GetAtt:
+        - EcrAccessRole
+        - Arn

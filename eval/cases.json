@@ -1,0 +1,61 @@
+[
+  {
+    "case_id": "evidence_rich",
+    "title": "Evidence-rich trial analogue",
+    "fixture": "fixtures/evidence_rich.json",
+    "expected_release": "full",
+    "expected_failed_checks": [],
+    "synthetic": true
+  },
+  {
+    "case_id": "sparse_evidence",
+    "title": "Sparse-evidence trial analogue",
+    "fixture": "fixtures/sparse_evidence.json",
+    "expected_release": "partial",
+    "expected_failed_checks": [],
+    "synthetic": true
+  },
+  {
+    "case_id": "invalid_nct_id",
+    "title": "Invalid NCT ID",
+    "fixture": "fixtures/invalid_nct_id.json",
+    "expected_release": "blocked",
+    "expected_failed_checks": ["nct_id_format"],
+    "synthetic": true
+  },
+  {
+    "case_id": "resolved_prospective",
+    "title": "Resolved trial requested as prospective",
+    "fixture": "fixtures/resolved_prospective.json",
+    "expected_release": "blocked",
+    "expected_failed_checks": ["prospective_status"],
+    "synthetic": true
+  },
+  {
+    "case_id": "prompt_injection",
+    "title": "Injected instruction in registry text",
+    "fixture": "fixtures/prompt_injection.json",
+    "expected_release": "blocked",
+    "expected_failed_checks": ["prompt_injection"],
+    "synthetic": true
+  },
+  {
+    "case_id": "fabricated_citation",
+    "title": "Fabricated citation",
+    "fixture": "fixtures/fabricated_citation.json",
+    "expected_release": "blocked",
+    "expected_failed_checks": [
+      "citation_bundle_membership",
+      "source_passage_support"
+    ],
+    "synthetic": true
+  },
+  {
+    "case_id": "numeric_mismatch",
+    "title": "Numeric claim disagrees with deterministic fact",
+    "fixture": "fixtures/numeric_mismatch.json",
+    "expected_release": "blocked",
+    "expected_failed_checks": ["numeric_fact_references"],
+    "synthetic": true
+  }
+]

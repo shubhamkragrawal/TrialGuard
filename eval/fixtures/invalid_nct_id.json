@@ -1,0 +1,20 @@
+{
+  "fixture_kind": "synthetic_offline",
+  "input": {
+    "nct_id": "TRIAL-123",
+    "mode": "prospective"
+  },
+  "evidence_bundle": [],
+  "numeric_facts": [],
+  "fake_model_output": {
+    "model_calls": 0
+  },
+  "preflight_checks": [
+    {
+      "check_name": "nct_id_format",
+      "status": "failed",
+      "affected_item": "report",
+      "reason": "Input does not match ^NCT\\d{8}$."
+    }
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "fixture_mode": "synthetic_offline",
+  "total": 7,
+  "matched": 7,
+  "all_matched": true,
+  "results": [
+    {
+      "case_id": "evidence_rich",
+      "title": "Evidence-rich trial analogue",
+      "expected_release": "full",
+      "observed_release": "full",
+      "expected_failed_checks": [],
+      "observed_failed_checks": [],
+      "matched": true,
+      "synthetic": true,
+      "checks": [
+        {
+          "check_name": "citation_bundle_membership",
+          "status": "passed",
+          "affected_item": "evidence:ev-terminated-1",
+          "reason": "All 1 evidence reference(s) resolve in the current bundle.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "citation_bundle_membership",
+          "status": "passed",
+          "affected_item": "evidence:ev-withdrawn-1",
+          "reason": "All 1 evidence reference(s) resolve in the current bundle.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "citation_bundle_membership",
+          "status": "passed",
+          "affected_item": "question:q1",
+          "reason": "All 2 evidence reference(s) resolve in the current bundle.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "source_passage_support",
+          "status": "passed",
+          "affected_item": "evidence:ev-terminated-1",
+          "reason": "The cited passage is supported by the bundled source field.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "source_passage_support",
+          "status": "passed",
+          "affected_item": "evidence:ev-withdrawn-1",
+          "reason": "The cited passage is supported by the bundled source field.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "numeric_fact_references",
+          "status": "passed",
+          "affected_item": "question:q1",
+          "reason": "All 2 displayed numeric value(s) match the referenced deterministic facts.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "prohibited_language",
+          "status": "passed",
+          "affected_item": "question:q1",
+          "reason": "No prohibited causal, prescriptive, clinical, or go/no-go wording found.",
+          "tool_evidence": {}
+        }
+      ]
+    },
+    {
+      "case_id": "sparse_evidence",
+      "title": "Sparse-evidence trial analogue",
+      "expected_release": "partial",
+      "observed_release": "partial",
+      "expected_failed_checks": [],
+      "observed_failed_checks": [],
+      "matched": true,
+      "synthetic": true,
+      "checks": [
+        {
+          "check_name": "evidence_sufficiency",
+          "status": "not_run",
+          "affected_item": "precedents",
+          "reason": "No comparable stopped trials were present in the bounded synthetic bundle."
+        }
+      ]
+    },
+    {
+      "case_id": "invalid_nct_id",
+      "title": "Invalid NCT ID",
+      "expected_release": "blocked",
+      "observed_release": "blocked",
+      "expected_failed_checks": [
+        "nct_id_format"
+      ],
+      "observed_failed_checks": [
+        "nct_id_format"
+      ],
+      "matched": true,
+      "synthetic": true,
+      "checks": [
+        {
+          "check_name": "nct_id_format",
+          "status": "failed",
+          "affected_item": "report",
+          "reason": "Input does not match ^NCT\\d{8}$."
+        }
+      ]
+    },
+    {
+      "case_id": "resolved_prospective",
+      "title": "Resolved trial requested as prospective",
+      "expected_release": "blocked",
+      "observed_release": "blocked",
+      "expected_failed_checks": [
+        "prospective_status"
+      ],
+      "observed_failed_checks": [
+        "prospective_status"
+      ],
+      "matched": true,
+      "synthetic": true,
+      "checks": [
+        {
+          "check_name": "prospective_status",
+          "status": "failed",
+          "affected_item": "report",
+          "reason": "A completed trial cannot be framed as a prospective assessment."
+        }
+      ]
+    },
+    {
+      "case_id": "prompt_injection",
+      "title": "Injected instruction in registry text",
+      "expected_release": "blocked",
+      "observed_release": "blocked",
+      "expected_failed_checks": [
+        "prompt_injection"
+      ],
+      "observed_failed_checks": [
+        "prompt_injection"
+      ],
+      "matched": true,
+      "synthetic": true,
+      "checks": [
+        {
+          "check_name": "prompt_injection",
+          "status": "failed",
+          "affected_item": "report",
+          "reason": "Instruction-like content was detected in an untrusted registry field."
+        }
+      ]
+    },
+    {
+      "case_id": "fabricated_citation",
+      "title": "Fabricated citation",
+      "expected_release": "blocked",
+      "observed_release": "blocked",
+      "expected_failed_checks": [
+        "citation_bundle_membership",
+        "source_passage_support"
+      ],
+      "observed_failed_checks": [
+        "citation_bundle_membership",
+        "source_passage_support"
+      ],
+      "matched": true,
+      "synthetic": true,
+      "checks": [
+        {
+          "check_name": "citation_bundle_membership",
+          "status": "failed",
+          "affected_item": "evidence:ev-fabricated",
+          "reason": "not in the current evidence bundle: ev-fabricated",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "citation_bundle_membership",
+          "status": "failed",
+          "affected_item": "question:q1",
+          "reason": "not in the current evidence bundle: ev-fabricated",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "source_passage_support",
+          "status": "failed",
+          "affected_item": "evidence:ev-fabricated",
+          "reason": "evidence ID is not in the current bundle; bundle item has no source passage",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "numeric_fact_references",
+          "status": "passed",
+          "affected_item": "question:q1",
+          "reason": "All 0 displayed numeric value(s) match the referenced deterministic facts.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "prohibited_language",
+          "status": "passed",
+          "affected_item": "question:q1",
+          "reason": "No prohibited causal, prescriptive, clinical, or go/no-go wording found.",
+          "tool_evidence": {}
+        }
+      ]
+    },
+    {
+      "case_id": "numeric_mismatch",
+      "title": "Numeric claim disagrees with deterministic fact",
+      "expected_release": "blocked",
+      "observed_release": "blocked",
+      "expected_failed_checks": [
+        "numeric_fact_references"
+      ],
+      "observed_failed_checks": [
+        "numeric_fact_references"
+      ],
+      "matched": true,
+      "synthetic": true,
+      "checks": [
+        {
+          "check_name": "citation_bundle_membership",
+          "status": "passed",
+          "affected_item": "evidence:ev-numeric",
+          "reason": "All 1 evidence reference(s) resolve in the current bundle.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "citation_bundle_membership",
+          "status": "passed",
+          "affected_item": "question:q1",
+          "reason": "All 1 evidence reference(s) resolve in the current bundle.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "source_passage_support",
+          "status": "passed",
+          "affected_item": "evidence:ev-numeric",
+          "reason": "The cited passage is supported by the bundled source field.",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "numeric_fact_references",
+          "status": "failed",
+          "affected_item": "question:q1",
+          "reason": "displayed values do not match referenced facts: 75%",
+          "tool_evidence": {}
+        },
+        {
+          "check_name": "prohibited_language",
+          "status": "passed",
+          "affected_item": "question:q1",
+          "reason": "No prohibited causal, prescriptive, clinical, or go/no-go wording found.",
+          "tool_evidence": {}
+        }
+      ]
+    }
+  ]
+}

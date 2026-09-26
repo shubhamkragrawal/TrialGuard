@@ -11,3 +11,31 @@ ignore/
 *.pfx
 credentials*.json
 secrets*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Runtime data and generated reports
+data/cache/
+runs/
+logs/
+demo/private/
+
+# AWS and infrastructure
+.aws/
+.terraform/
+*.tfstate
+*.tfstate.*
+cdk.out/
+
+# Local build artifacts
+.codex-finalizer/
+slides/.build/

@@ -1,0 +1,63 @@
+{
+  "fixture_kind": "synthetic_offline",
+  "input": {
+    "nct_id": "NCT00000001",
+    "mode": "retrospective"
+  },
+  "evidence_bundle": [
+    {
+      "evidence_id": "ev-terminated-1",
+      "nct_id": "NCT00000011",
+      "field_path": "protocolSection.statusModule.whyStopped",
+      "source_passage": "Enrollment was slower than anticipated.",
+      "stop_reason": "Enrollment was slower than anticipated.",
+      "source_url": "https://clinicaltrials.gov/study/NCT00000011"
+    },
+    {
+      "evidence_id": "ev-withdrawn-1",
+      "nct_id": "NCT00000012",
+      "field_path": "protocolSection.statusModule.whyStopped",
+      "source_passage": "The study was withdrawn before enrollment because the site did not open.",
+      "stop_reason": "The study was withdrawn before enrollment because the site did not open.",
+      "source_url": "https://clinicaltrials.gov/study/NCT00000012"
+    }
+  ],
+  "numeric_facts": [
+    {
+      "fact_id": "fact-stop-count",
+      "label": "Stopped resolved studies",
+      "value": 2,
+      "unit": "studies",
+      "numerator": 2,
+      "denominator": 5,
+      "derivation": "TERMINATED + WITHDRAWN among resolved studies"
+    }
+  ],
+  "fake_model_output": {
+    "selected_evidence": [
+      {
+        "evidence_id": "ev-terminated-1",
+        "nct_id": "NCT00000011",
+        "field_path": "protocolSection.statusModule.whyStopped",
+        "source_passage": "Enrollment was slower than anticipated."
+      },
+      {
+        "evidence_id": "ev-withdrawn-1",
+        "nct_id": "NCT00000012",
+        "field_path": "protocolSection.statusModule.whyStopped",
+        "source_passage": "The study was withdrawn before enrollment because the site did not open."
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "q1",
+        "question": "What enrollment assumptions warrant closer operational review given that 2 of 5 resolved studies stopped?",
+        "evidence_ids": ["ev-terminated-1", "ev-withdrawn-1"],
+        "numeric_fact_ids": ["fact-stop-count"],
+        "explanation": "The cited records identify enrollment and site-opening issues.",
+        "uncertainty": "Registry reasons are self-reported and may be incomplete."
+      }
+    ]
+  },
+  "preflight_checks": []
+}

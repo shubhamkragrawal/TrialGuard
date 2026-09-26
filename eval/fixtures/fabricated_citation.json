@@ -1,0 +1,39 @@
+{
+  "fixture_kind": "synthetic_adversarial",
+  "input": {
+    "nct_id": "NCT00000005",
+    "mode": "retrospective"
+  },
+  "evidence_bundle": [
+    {
+      "evidence_id": "ev-real",
+      "nct_id": "NCT00000051",
+      "field_path": "protocolSection.statusModule.whyStopped",
+      "source_passage": "The sponsor ended the study for operational reasons.",
+      "stop_reason": "The sponsor ended the study for operational reasons.",
+      "source_url": "https://clinicaltrials.gov/study/NCT00000051"
+    }
+  ],
+  "numeric_facts": [],
+  "fake_model_output": {
+    "selected_evidence": [
+      {
+        "evidence_id": "ev-fabricated",
+        "nct_id": "NCT99999999",
+        "field_path": "protocolSection.statusModule.whyStopped",
+        "source_passage": "The fabricated study stopped because recruitment failed."
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "q1",
+        "question": "What recruitment assumptions warrant closer operational review?",
+        "evidence_ids": ["ev-fabricated"],
+        "numeric_fact_ids": [],
+        "explanation": "The cited study reportedly encountered recruitment difficulty.",
+        "uncertainty": "The source must be verified."
+      }
+    ]
+  },
+  "preflight_checks": []
+}

@@ -1,0 +1,20 @@
+{
+  "measured_at": "2026-09-26",
+  "sample_type": "single_live_smoke_test",
+  "nct_id": "NCT06860815",
+  "region": "us-east-1",
+  "model_id": "us.amazon.nova-lite-v1:0",
+  "release_state": "full",
+  "questions": 2,
+  "checks_passed": 14,
+  "checks_total": 14,
+  "model_calls": 3,
+  "input_tokens": 10821,
+  "output_tokens": 1758,
+  "elapsed_seconds": 11.77,
+  "input_usd_per_million_tokens": 0.06,
+  "output_usd_per_million_tokens": 0.24,
+  "estimated_model_cost_usd": 0.001071,
+  "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+  "note": "One observed smoke test, not a latency or quality benchmark. AWS hosting and data-transfer costs are excluded."
+}

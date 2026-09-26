@@ -1,0 +1,61 @@
+.git
+.github
+.gitignore
+.dockerignore
+
+# Local Python and test artifacts
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov
+tests
+
+# Local environments, cloud profiles, credentials, and keys
+.env
+.env.*
+!.env.example
+.aws
+**/.aws
+*credentials*.json
+*secrets*.json
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Infrastructure and local deployment state
+deploy
+apprunner.yaml
+.terraform
+**/.terraform
+*.tfstate
+*.tfstate.*
+cdk.out
+
+# Planning, presentation, and workspace-only material
+ignore
+slides
+*.pptx
+*.pdf
+*.md
+!README.md
+
+# Runtime data must never be baked into the public image
+cache
+runs
+logs
+traces
+*.log
+demo/raw
+demo/cache
+
+# Editor and OS metadata
+.DS_Store
+.idea
+.vscode
+*.swp

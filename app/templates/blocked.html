@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Review blocked · TrialGuard{% endblock %}
+{% block body_class %}page-system-state page-blocked{% endblock %}
+
+{% block context_bar %}
+  <div class="context-bar">
+    <div class="shell context-bar__inner">
+      <a class="back-link" href="/">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        New review
+      </a>
+      {% if run_id %}<span class="run-id">Run {{ run_id }}</span>{% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <section class="blocked-hero">
+    <div class="shell blocked-hero__grid">
+      <div class="blocked-signal" aria-hidden="true">
+        <svg viewBox="0 0 80 80"><path d="M40 7 71 66H9L40 7Z"/><path d="M40 27v21M40 57v.1"/></svg>
+      </div>
+      <div class="blocked-copy">
+        <span class="eyebrow eyebrow--coral">Release gate stopped this run</span>
+        <h1>No generated review was released.</h1>
+        <p>
+          {{ blocked_reason|default("One or more claims did not meet TrialGuard’s grounding, numeric, or language requirements.", true) }}
+        </p>
+        {% if nct_id %}
+          <div class="blocked-source">
+            <span>Requested record</span>
+            {% if source_url %}
+              <a href="{{ source_url }}" target="_blank" rel="noopener noreferrer">{{ nct_id }} ↗</a>
+            {% else %}
+              <strong>{{ nct_id }}</strong>
+            {% endif %}
+            {% if source_retrieved_at %}<small>Source retrieved {{ source_retrieved_at }}</small>{% endif %}
+          </div>
+        {% endif %}
+        <div class="state-actions">
+          <a class="button button--primary" href="/">Start another review</a>
+          <a class="button button--secondary button--on-dark" href="/evaluation">See safety evaluation</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell blocked-detail-grid">
+    <section class="blocked-detail-card" aria-labelledby="findings-title">
+      <div class="section-heading">
+        <span class="eyebrow">Challenge findings</span>
+        <h2 id="findings-title">Why release stopped</h2>
+      </div>
+      {% if findings %}
+        <ol class="blocked-finding-list">
+          {% for finding in findings %}
+            <li>
+              <span>{{ "%02d"|format(loop.index) }}</span>
+              <div>
+                <strong>{{ finding.title|default(finding.category, true)|default("Unresolved finding", true) }}</strong>
+                <p>{{ finding.detail|default(finding.message, true) }}</p>
+              </div>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p class="muted-copy">No challenge-agent detail is available. The deterministic result below remains authoritative.</p>
+      {% endif %}
+    </section>
+
+    <section class="blocked-detail-card" aria-labelledby="blocked-checks-title">
+      <div class="section-heading">
+        <span class="eyebrow">Deterministic result</span>
+        <h2 id="blocked-checks-title">Release checks</h2>
+      </div>
+      <ul class="check-list check-list--roomy">
+        {% for check in checks|default([], true) %}
+          <li>
+            <span class="check-icon check-icon--{{ check.status|default('not-run')|lower|replace('_', '-') }}" aria-hidden="true">
+              {% if check.status in ["passed", "pass"] %}
+                <svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-9"/></svg>
+              {% elif check.status in ["failed", "fail", "blocked"] %}
+                <svg viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg>
+              {% else %}
+                <svg viewBox="0 0 20 20"><path d="M6 10h8"/></svg>
+              {% endif %}
+            </span>
+            <div>
+              <strong>{{ check.label|default(check.name, true)|default(check.check_name, true)|replace("_", " ")|title }}</strong>
+              <small>{{ check.reason|default("No detail available", true) }}</small>
+            </div>
+            <span class="check-status">{{ check.status|default("not run", true)|replace("_", " ")|title }}</span>
+          </li>
+        {% else %}
+          <li class="check-empty">No check details are available.</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+
+  <aside class="shell blocked-boundary">
+    <strong>Safe failure is expected behavior.</strong>
+    <p>TrialGuard withholds unsupported output instead of presenting a plausible-looking answer. A block is not a prediction about the trial.</p>
+  </aside>
+{% endblock %}

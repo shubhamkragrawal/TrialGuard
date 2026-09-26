@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Private ECR repository for the TrialGuard App Runner image.
+
+Parameters:
+  RepositoryName:
+    Type: String
+    Default: trialguard
+    AllowedPattern: "^[a-z0-9]+(?:[._/-][a-z0-9]+)*$"
+    Description: Name of the private ECR repository.
+
+Resources:
+  Repository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName:
+        Ref: RepositoryName
+      EmptyOnDelete: true
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: IMMUTABLE
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Retain the ten most recent images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+      Tags:
+        - Key: Project
+          Value: TrialGuard
+        - Key: Environment
+          Value: hackathon
+
+Outputs:
+  RepositoryArn:
+    Description: ARN used to scope the App Runner image access role.
+    Value:
+      Fn::GetAtt:
+        - Repository
+        - Arn
+  RepositoryName:
+    Value:
+      Ref: Repository
+  RepositoryUri:
+    Value:
+      Fn::GetAtt:
+        - Repository
+        - RepositoryUri

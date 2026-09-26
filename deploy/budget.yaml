@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Optional account-wide cost budget for the TrialGuard demo account.
+
+Parameters:
+  BudgetName:
+    Type: String
+    Default: trialguard-hackathon
+  MonthlyLimitUsd:
+    Type: Number
+    Default: 25
+    MinValue: 1
+  NotificationEmail:
+    Type: String
+    AllowedPattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+    Description: Monitored address that will confirm and receive budget alerts.
+
+Resources:
+  AccountBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName:
+          Ref: BudgetName
+        BudgetLimit:
+          Amount:
+            Ref: MonthlyLimitUsd
+          Unit: USD
+        BudgetType: COST
+        TimeUnit: MONTHLY
+      NotificationsWithSubscribers:
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: FORECASTED
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address:
+                Ref: NotificationEmail
+              SubscriptionType: EMAIL
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address:
+                Ref: NotificationEmail
+              SubscriptionType: EMAIL
+
+Outputs:
+  ScopeNotice:
+    Value: This budget monitors total account cost and does not stop resources.

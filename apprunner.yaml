@@ -1,0 +1,29 @@
+# App Runner does not read this file for the authoritative ECR image
+# deployment. It is retained as a source-based fallback and runtime contract.
+version: 1.0
+runtime: python311
+build:
+  commands:
+    build:
+      - python -m pip install .
+run:
+  command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+  network:
+    port: 8000
+  env:
+    - name: TRIALGUARD_ENV
+      value: production
+    - name: TRIALGUARD_AWS_REGION
+      value: us-east-1
+    - name: TRIALGUARD_LIVE_BEDROCK_ENABLED
+      value: "true"
+    - name: PORT
+      value: "8000"
+    - name: TRIALGUARD_MODEL_CALL_LIMIT
+      value: "8"
+    - name: TRIALGUARD_MAX_REVISIONS
+      value: "1"
+    - name: TRIALGUARD_REPORT_TIMEOUT_SECONDS
+      value: "90"
+    - name: TRIALGUARD_LOG_PAYLOADS
+      value: "false"

@@ -1,0 +1,6 @@
+.build/
+.codex-finalizer/
+.rendered-final/
+.review-original/
+.tmp-*/
+.validated-*/

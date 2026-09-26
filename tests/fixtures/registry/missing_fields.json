@@ -1,0 +1,10 @@
+{
+  "protocolSection": {
+    "identificationModule": {
+      "nctId": "NCT00000008"
+    },
+    "statusModule": {
+      "overallStatus": "TERMINATED"
+    }
+  }
+}

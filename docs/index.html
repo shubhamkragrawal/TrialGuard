@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="TrialGuard is an evidence-linked second review for clinical-trial operations. Explore a checked static demonstration and its release-gate evaluation."
+    >
+    <meta name="theme-color" content="#0b2729">
+    <title>TrialGuard · Evidence-linked trial review</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20rx='14'%20width='64'%20height='64'%20fill='%230b2729'/%3E%3Cpath%20d='M16%2044V30M32%2044V16M48%2044V25'%20stroke='%2338c0ad'%20stroke-width='9'%20stroke-linecap='round'/%3E%3C/svg%3E"
+    >
+    <link rel="stylesheet" href="styles.css">
+    <script>document.documentElement.classList.add("js");</script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+      <div class="shell header-inner">
+        <a class="brand" href="#overview" data-route="overview" aria-label="TrialGuard home">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span>TrialGuard</span>
+        </a>
+
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="#overview" data-route="overview">Overview</a>
+          <a href="#report" data-route="report">Prepared report</a>
+          <a href="#evaluation" data-route="evaluation">Evaluation</a>
+          <a href="#boundary" data-route="boundary">Intended use</a>
+        </nav>
+
+        <a
+          class="button button-small button-ghost"
+          href="https://github.com/shubhamkragrawal/TrialGuard"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View source
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </header>
+
+    <noscript>
+      <div class="noscript-notice">
+        JavaScript is off. All showcase sections remain readable below, but page-style navigation is disabled.
+      </div>
+    </noscript>
+
+    <main id="main-content" tabindex="-1">
+      <section class="page is-active" data-page="overview" aria-labelledby="overview-title">
+        <div class="hero">
+          <div class="hero-grid shell">
+            <div class="hero-copy">
+              <p class="eyebrow eyebrow-light">Public registry evidence · bounded review</p>
+              <h1 id="overview-title">
+                Find the questions worth asking
+                <em>before the next decision.</em>
+              </h1>
+              <p class="hero-lede">
+                TrialGuard turns one ClinicalTrials.gov ID into an inspectable
+                operations-review brief: comparable stopped trials, exact source
+                passages, and carefully bounded questions for a qualified reviewer.
+              </p>
+              <div class="hero-actions">
+                <a class="button button-primary" href="#report" data-route="report">
+                  Explore prepared report
+                  <span aria-hidden="true">→</span>
+                </a>
+                <a class="text-link text-link-light" href="#evaluation" data-route="evaluation">
+                  See the release-gate evaluation
+                </a>
+              </div>
+              <ul class="proof-list" aria-label="Product safeguards">
+                <li><span aria-hidden="true">✓</span> Public fields only</li>
+                <li><span aria-hidden="true">✓</span> Evidence stays attached</li>
+                <li><span aria-hidden="true">✓</span> Deterministic release gates</li>
+              </ul>
+            </div>
+
+            <aside class="hero-card" aria-label="TrialGuard review preview">
+              <div class="hero-card-topline">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span>Prepared static showcase</span>
+                <span class="chip">No live model call</span>
+              </div>
+              <div class="trial-preview">
+                <span class="micro-label">Example record</span>
+                <strong>NCT06860815</strong>
+                <p>Active Phase 2 breast-cancer study</p>
+              </div>
+              <ol class="mini-trace">
+                <li>
+                  <span class="trace-icon" aria-hidden="true">01</span>
+                  <div><strong>Retrieve</strong><small>Allowlisted registry fields</small></div>
+                  <span class="trace-state">Checked</span>
+                </li>
+                <li>
+                  <span class="trace-icon" aria-hidden="true">02</span>
+                  <div><strong>Ground</strong><small>Comparable precedents + passages</small></div>
+                  <span class="trace-state">Checked</span>
+                </li>
+                <li>
+                  <span class="trace-icon" aria-hidden="true">03</span>
+                  <div><strong>Challenge</strong><small>Citations, numbers, wording</small></div>
+                  <span class="trace-state">Passed</span>
+                </li>
+              </ol>
+              <div class="hero-card-result">
+                <span aria-hidden="true">✓</span>
+                <div>
+                  <strong>Prepared output is ready to inspect</strong>
+                  <small>Synthetic/checked demo content</small>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <div class="shell section">
+          <div class="section-heading split-heading">
+            <div>
+              <p class="eyebrow">The product in one minute</p>
+              <h2>A second reviewer for trial operations.</h2>
+            </div>
+            <p>
+              TrialGuard does not predict whether a trial will succeed. It helps
+              teams inspect operational assumptions by connecting a current trial
+              to relevant public precedents and showing exactly where each claim came from.
+            </p>
+          </div>
+
+          <ol class="process-grid">
+            <li>
+              <span class="process-number">01</span>
+              <div class="process-symbol" aria-hidden="true">⌕</div>
+              <h3>Retrieve</h3>
+              <p>Load a small, explicit set of public trial fields and a bounded comparison cohort.</p>
+            </li>
+            <li>
+              <span class="process-number">02</span>
+              <div class="process-symbol" aria-hidden="true">≋</div>
+              <h3>Ground</h3>
+              <p>Find comparable stopped trials and retain the exact registry passage behind each precedent.</p>
+            </li>
+            <li>
+              <span class="process-number">03</span>
+              <div class="process-symbol" aria-hidden="true">◇</div>
+              <h3>Challenge</h3>
+              <p>Check citation membership, passage support, numeric facts, and prohibited language.</p>
+            </li>
+            <li>
+              <span class="process-number">04</span>
+              <div class="process-symbol" aria-hidden="true">?</div>
+              <h3>Hand off</h3>
+              <p>Release questions—not recommendations—to a qualified human reviewer.</p>
+            </li>
+          </ol>
+        </div>
+
+        <div class="trust-band">
+          <div class="shell trust-grid">
+            <div>
+              <p class="eyebrow eyebrow-coral">Why the guardrails matter</p>
+              <h2>Useful only when uncertainty stays visible.</h2>
+            </div>
+            <div class="trust-points">
+              <article>
+                <span aria-hidden="true">A</span>
+                <div>
+                  <h3>Model roles are bounded</h3>
+                  <p>Evidence, coordination, and challenge roles organize the brief; fixed code controls what is released.</p>
+                </div>
+              </article>
+              <article>
+                <span aria-hidden="true">B</span>
+                <div>
+                  <h3>Unsupported content is withheld</h3>
+                  <p>A missing citation, mismatched number, or unsafe claim can block the affected output.</p>
+                </div>
+              </article>
+              <article>
+                <span aria-hidden="true">C</span>
+                <div>
+                  <h3>The person remains responsible</h3>
+                  <p>Registry similarity is not causation, and a generated question is not a protocol decision.</p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <div class="shell section compact-section">
+          <div class="cta-panel">
+            <div>
+              <p class="eyebrow">See the interface</p>
+              <h2>Open the checked prepared example.</h2>
+              <p>
+                Walk through a static report for NCT06860815, inspect its evidence
+                links, and expand the release checks.
+              </p>
+            </div>
+            <a class="button button-dark" href="#report" data-route="report">
+              Open report <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" data-page="report" aria-labelledby="report-title">
+        <div class="context-bar">
+          <div class="shell context-inner">
+            <a href="#overview" data-route="overview">← Back to overview</a>
+            <div>
+              <span class="status-pill status-pill-demo">
+                <span aria-hidden="true"></span>
+                Static prepared example
+              </span>
+              <button class="copy-button" type="button" data-copy-link aria-label="Copy link to prepared report">
+                Copy link
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="shell report-shell">
+          <div class="demo-disclosure" role="note">
+            <span class="disclosure-icon" aria-hidden="true">i</span>
+            <div>
+              <strong>Synthetic/checked demonstration—not a live Bedrock run</strong>
+              <p>
+                This prepared interface uses NCT06860815 as the public example ID.
+                The review narrative, comparison display, and pass states below are
+                curated synthetic content for demonstrating TrialGuard’s checked
+                output format. They must not be treated as a current assessment of the trial.
+              </p>
+            </div>
+          </div>
+
+          <header class="report-header">
+            <div>
+              <div class="report-meta">
+                <span class="eyebrow">Prepared evidence review</span>
+                <span class="chip chip-light">Prospective framing</span>
+              </div>
+              <h1 id="report-title">Active Phase 2 breast-cancer study</h1>
+              <div class="trial-identity">
+                <a
+                  href="https://clinicaltrials.gov/study/NCT06860815"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  NCT06860815 <span aria-hidden="true">↗</span>
+                </a>
+                <span>Recruiting</span>
+                <span>Phase 2</span>
+              </div>
+            </div>
+            <div class="release-card" role="status">
+              <span class="release-icon" aria-hidden="true">✓</span>
+              <div>
+                <small>Prepared release state</small>
+                <strong>Approved for demonstration</strong>
+                <p>The synthetic citations, facts, schema, and wording below passed the showcase checks.</p>
+              </div>
+            </div>
+          </header>
+
+          <div class="report-layout">
+            <div class="report-main">
+              <section class="report-section" aria-labelledby="snapshot-title">
+                <div class="numbered-title">
+                  <span>01</span>
+                  <div>
+                    <p class="eyebrow">Public-record snapshot</p>
+                    <h2 id="snapshot-title">Trial at a glance</h2>
+                  </div>
+                </div>
+                <p class="section-note">
+                  Minimal registry descriptors are shown for orientation. This static
+                  page does not claim a fresh retrieval timestamp.
+                </p>
+                <div class="fact-grid">
+                  <article class="fact-card fact-card-wide">
+                    <small>Condition area</small>
+                    <div class="tag-row"><span>Breast cancer</span></div>
+                  </article>
+                  <article class="fact-card">
+                    <small>Study phase</small>
+                    <strong>Phase 2</strong>
+                  </article>
+                  <article class="fact-card">
+                    <small>Registry status</small>
+                    <strong>Recruiting</strong>
+                  </article>
+                  <article class="fact-card">
+                    <small>Review framing</small>
+                    <strong>Prospective</strong>
+                  </article>
+                  <article class="fact-card">
+                    <small>Source</small>
+                    <strong>ClinicalTrials.gov</strong>
+                  </article>
+                </div>
+              </section>
+
+              <section class="report-section" aria-labelledby="cohort-title">
+                <div class="numbered-title">
+                  <span>02</span>
+                  <div>
+                    <p class="eyebrow">Synthetic comparison display</p>
+                    <h2 id="cohort-title">Bounded cohort context</h2>
+                  </div>
+                </div>
+                <div class="cohort-panel">
+                  <div class="cohort-topline">
+                    <div>
+                      <span class="status-pill status-pill-demo">Illustrative fixture</span>
+                      <p>Designed to show how complete retrieval and denominators would be disclosed.</p>
+                    </div>
+                    <div class="withheld-metric">
+                      <small>Live cohort rate</small>
+                      <strong>Not claimed</strong>
+                      <span>Static showcase</span>
+                    </div>
+                  </div>
+                  <div class="filter-row" aria-label="Illustrative comparison filters">
+                    <span>Condition area: breast cancer</span>
+                    <span>Phase: Phase 2</span>
+                    <span>Status: resolved records</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="report-section" aria-labelledby="evidence-title">
+                <div class="numbered-title">
+                  <span>03</span>
+                  <div>
+                    <p class="eyebrow">Synthetic evidence card</p>
+                    <h2 id="evidence-title">How a precedent stays inspectable</h2>
+                  </div>
+                </div>
+                <article class="evidence-card" id="evidence-demo-01">
+                  <div class="evidence-topline">
+                    <span class="evidence-index">DEMO E01</span>
+                    <span class="synthetic-badge">Synthetic/checked</span>
+                  </div>
+                  <h3>Illustrative comparable stopped-trial precedent</h3>
+                  <p>
+                    This card intentionally uses a synthetic source passage so the
+                    static showcase cannot be mistaken for a live finding about NCT06860815.
+                  </p>
+                  <blockquote>
+                    <span>Illustrative stop-reason passage</span>
+                    “Enrollment was slower than anticipated.”
+                  </blockquote>
+                  <div class="source-row">
+                    <code>protocolSection.statusModule.whyStopped</code>
+                    <span>Fixture passage verified literally</span>
+                  </div>
+                </article>
+              </section>
+
+              <section class="report-section" aria-labelledby="question-title">
+                <div class="numbered-title">
+                  <span>04</span>
+                  <div>
+                    <p class="eyebrow">For qualified human review</p>
+                    <h2 id="question-title">Question to examine</h2>
+                  </div>
+                </div>
+                <article class="question-card">
+                  <span class="question-number">01</span>
+                  <div>
+                    <span class="synthetic-badge">Synthetic/checked question</span>
+                    <h3>
+                      Which site-activation and enrollment assumptions should the
+                      operations team stress-test before relying on the current recruitment plan?
+                    </h3>
+                    <p>
+                      The illustrative precedent shows the intended reasoning pattern:
+                      surface an operational topic, attach the evidence, and phrase the
+                      output as a question rather than a recommendation.
+                    </p>
+                    <p class="uncertainty">
+                      <strong>Uncertainty:</strong> Registry stop reasons are self-reported,
+                      incomplete, and do not establish causation or transferability.
+                    </p>
+                    <a class="evidence-link" href="#evidence-demo-01">View supporting demo evidence ↑</a>
+                  </div>
+                </article>
+              </section>
+            </div>
+
+            <aside class="report-sidebar" aria-label="Prepared report validation">
+              <section class="sidebar-card">
+                <div class="sidebar-heading">
+                  <span class="agent-avatar" aria-hidden="true">C</span>
+                  <div>
+                    <small>Prepared challenge result</small>
+                    <h2>Approved</h2>
+                  </div>
+                  <span class="approved-dot" aria-label="Approved"></span>
+                </div>
+                <p>
+                  No unresolved finding remains in this curated synthetic example.
+                </p>
+                <div class="revision-row">
+                  <span>Revision cycles</span><strong>0 / 1</strong>
+                </div>
+              </section>
+
+              <section class="sidebar-card">
+                <div class="sidebar-title-row">
+                  <div>
+                    <small>Deterministic gates</small>
+                    <h2>Release checks</h2>
+                  </div>
+                  <strong class="check-score">4/4</strong>
+                </div>
+                <ul class="check-list">
+                  <li>
+                    <span aria-hidden="true">✓</span>
+                    <div><strong>Citation membership</strong><small>Demo evidence ID resolves in this page.</small></div>
+                    <em>Passed</em>
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✓</span>
+                    <div><strong>Passage support</strong><small>Displayed quote matches its fixture passage.</small></div>
+                    <em>Passed</em>
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✓</span>
+                    <div><strong>Numeric facts</strong><small>No unsupported numeric claim is released.</small></div>
+                    <em>Passed</em>
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✓</span>
+                    <div><strong>Bounded language</strong><small>No causal, prescriptive, or go/no-go claim.</small></div>
+                    <em>Passed</em>
+                  </li>
+                </ul>
+              </section>
+
+              <details class="sidebar-card trace-card">
+                <summary>
+                  <span><small>Inspectable metadata</small><strong>Prepared trace</strong></span>
+                  <span aria-hidden="true">⌄</span>
+                </summary>
+                <ol>
+                  <li><span>01</span><div><strong>Fixture loaded</strong><small>Local static content</small></div></li>
+                  <li><span>02</span><div><strong>Evidence linked</strong><small>One synthetic passage</small></div></li>
+                  <li><span>03</span><div><strong>Checks represented</strong><small>Four checked conditions</small></div></li>
+                  <li><span>04</span><div><strong>Page rendered</strong><small>No external services called</small></div></li>
+                </ol>
+              </details>
+
+              <div class="read-note">
+                <span aria-hidden="true">i</span>
+                <p><strong>Read with the source.</strong> Similarity is not causation, and registry data can be incomplete.</p>
+              </div>
+            </aside>
+          </div>
+
+          <div class="next-panel">
+            <div>
+              <p class="eyebrow">What was actually tested?</p>
+              <h2>See the frozen seven-case release-gate suite.</h2>
+            </div>
+            <a class="button button-dark" href="#evaluation" data-route="evaluation">
+              View evaluation <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" data-page="evaluation" aria-labelledby="evaluation-title">
+        <div class="evaluation-hero">
+          <div class="shell evaluation-hero-grid">
+            <div>
+              <p class="eyebrow eyebrow-light">Frozen synthetic test suite</p>
+              <h1 id="evaluation-title">Seven cases.<br>Failures included.</h1>
+              <p>
+                TrialGuard was checked not only on a successful evidence-rich case,
+                but also on situations where a responsible system should withhold,
+                block, or reframe output.
+              </p>
+            </div>
+            <div class="score-card" aria-label="Evaluation score: 7 of 7 expected outcomes matched">
+              <div class="score-ring">
+                <span><strong>7/7</strong><small>expected outcomes</small></span>
+              </div>
+              <div>
+                <small>Fixture mode</small>
+                <strong>Synthetic offline</strong>
+                <small>Recorded result</small>
+                <strong>All matched</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="shell section">
+          <div class="evaluation-disclosure">
+            <span aria-hidden="true">✓</span>
+            <p>
+              <strong>What 7/7 means:</strong> the software produced the expected
+              release state and expected failed checks for seven frozen synthetic
+              fixtures. It is not a measure of clinical accuracy, safety, utility,
+              model quality, or real-world performance.
+            </p>
+          </div>
+
+          <div class="section-heading split-heading evaluation-heading">
+            <div>
+              <p class="eyebrow">Expected behavior by case</p>
+              <h2>The system also passes by refusing.</h2>
+            </div>
+            <p>
+              Every case below is synthetic. For adversarial fixtures, a blocked
+              output is the desired and passing behavior.
+            </p>
+          </div>
+
+          <div class="case-list" role="list" aria-label="Seven synthetic evaluation cases">
+            <article role="listitem">
+              <span class="case-number">01</span>
+              <div><h3>Evidence-rich trial analogue</h3><p>Grounding and supported question release</p></div>
+              <span class="expected-state state-full">Full release</span>
+              <span class="pass-state"><span aria-hidden="true">✓</span> Matched</span>
+            </article>
+            <article role="listitem">
+              <span class="case-number">02</span>
+              <div><h3>Sparse-evidence trial analogue</h3><p>Evidence sufficiency and honest limitation</p></div>
+              <span class="expected-state state-partial">Partial release</span>
+              <span class="pass-state"><span aria-hidden="true">✓</span> Matched</span>
+            </article>
+            <article role="listitem">
+              <span class="case-number">03</span>
+              <div><h3>Invalid NCT ID</h3><p>Input format validation before processing</p></div>
+              <span class="expected-state state-blocked">Blocked</span>
+              <span class="pass-state"><span aria-hidden="true">✓</span> Matched</span>
+            </article>
+            <article role="listitem">
+              <span class="case-number">04</span>
+              <div><h3>Resolved trial requested as prospective</h3><p>Temporal framing boundary</p></div>
+              <span class="expected-state state-blocked">Blocked</span>
+              <span class="pass-state"><span aria-hidden="true">✓</span> Matched</span>
+            </article>
+            <article role="listitem">
+              <span class="case-number">05</span>
+              <div><h3>Injected instruction in registry text</h3><p>Untrusted-content prompt-injection defense</p></div>
+              <span class="expected-state state-blocked">Blocked</span>
+              <span class="pass-state"><span aria-hidden="true">✓</span> Matched</span>
+            </article>
+            <article role="listitem">
+              <span class="case-number">06</span>
+              <div><h3>Fabricated citation</h3><p>Evidence-bundle membership and literal support</p></div>
+              <span class="expected-state state-blocked">Blocked</span>
+              <span class="pass-state"><span aria-hidden="true">✓</span> Matched</span>
+            </article>
+            <article role="listitem">
+              <span class="case-number">07</span>
+              <div><h3>Numeric claim mismatch</h3><p>Generated number versus deterministic fact</p></div>
+              <span class="expected-state state-blocked">Blocked</span>
+              <span class="pass-state"><span aria-hidden="true">✓</span> Matched</span>
+            </article>
+          </div>
+
+          <div class="principle-grid">
+            <article>
+              <span>01</span>
+              <h3>Grounding</h3>
+              <p>Source IDs, quoted passages, and numeric facts must agree with the current evidence bundle.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <h3>Restraint</h3>
+              <p>Sparse, unsafe, retrospective, and unsupported cases are withheld or explicitly reframed.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <h3>Human review</h3>
+              <p>The suite does not establish clinical utility, independent validation, or regulatory suitability.</p>
+            </article>
+          </div>
+
+          <div class="center-action">
+            <a class="button button-dark" href="#boundary" data-route="boundary">
+              Read the intended-use boundary <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" data-page="boundary" aria-labelledby="boundary-title">
+        <div class="boundary-hero">
+          <div class="shell">
+            <p class="eyebrow eyebrow-coral">Human decision boundary</p>
+            <h1 id="boundary-title">TrialGuard raises review questions.<br>It does not make the decision.</h1>
+          </div>
+        </div>
+
+        <div class="shell section boundary-content">
+          <div class="boundary-intro">
+            <div>
+              <p class="eyebrow">Intended use</p>
+              <h2>A bounded decision-support demonstration.</h2>
+            </div>
+            <p>
+              TrialGuard is designed for a clinical-operations or trial-feasibility
+              reviewer at a sponsor or CRO. It organizes selected public registry
+              evidence into an inspectable brief. The qualified user remains
+              responsible for every protocol and operational decision.
+            </p>
+          </div>
+
+          <div class="boundary-columns">
+            <section class="does-card">
+              <span class="card-symbol" aria-hidden="true">✓</span>
+              <h2>What it demonstrates</h2>
+              <ul>
+                <li>Retrieval from allowlisted public registry fields</li>
+                <li>Transparent, bounded comparison logic</li>
+                <li>Evidence-linked operational review questions</li>
+                <li>Deterministic gates around generated output</li>
+                <li>Visible uncertainty, limitations, and source links</li>
+              </ul>
+            </section>
+            <section class="does-not-card">
+              <span class="card-symbol" aria-hidden="true">×</span>
+              <h2>What it does not do</h2>
+              <ul>
+                <li>Predict trial termination or individual outcomes</li>
+                <li>Recommend treatment, protocol, or design changes</li>
+                <li>Issue go/no-go, clinical, regulatory, or legal advice</li>
+                <li>Process patient data or confidential protocols</li>
+                <li>Replace clinical, regulatory, or operational judgment</li>
+              </ul>
+            </section>
+          </div>
+
+          <aside class="hosting-note" aria-labelledby="hosting-note-title">
+            <span class="hosting-icon" aria-hidden="true">AWS</span>
+            <div>
+              <p class="eyebrow">Hosting status</p>
+              <h2 id="hosting-note-title">Why this static showcase exists</h2>
+              <p>
+                The intended deployment uses AWS in <code>us-east-1</code>, with
+                Bedrock for bounded model roles and a managed web service for the
+                application. The current workshop role allows model experimentation
+                but denies the hosting services needed to publish the live app.
+                This GitHub Pages site is the reviewed static fallback; it makes no
+                live Bedrock or ClinicalTrials.gov requests.
+              </p>
+            </div>
+          </aside>
+
+          <div class="source-panel">
+            <div>
+              <p class="eyebrow">Inspect the implementation</p>
+              <h2>Source, checks, fixtures, and deployment templates are public.</h2>
+            </div>
+            <a
+              class="button button-primary"
+              href="https://github.com/shubhamkragrawal/TrialGuard"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open GitHub repository <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-grid">
+        <div>
+          <a class="brand brand-footer" href="#overview" data-route="overview">
+            <span class="brand-mark" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </span>
+            <span>TrialGuard</span>
+          </a>
+          <p>Evidence-linked operational questions for qualified human review.</p>
+        </div>
+        <div>
+          <strong>Showcase</strong>
+          <a href="#report" data-route="report">Prepared report</a>
+          <a href="#evaluation" data-route="evaluation">Evaluation</a>
+          <a href="#boundary" data-route="boundary">Intended use</a>
+        </div>
+        <div>
+          <strong>Source</strong>
+          <a
+            href="https://github.com/shubhamkragrawal/TrialGuard"
+            target="_blank"
+            rel="noopener noreferrer"
+          >GitHub repository ↗</a>
+          <a
+            href="https://clinicaltrials.gov/study/NCT06860815"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Example registry record ↗</a>
+        </div>
+      </div>
+      <div class="shell footer-bottom">
+        <span>Hackathon decision-support demonstration</span>
+        <span>Not clinical, regulatory, legal, or medical advice</span>
+      </div>
+    </footer>
+
+    <div class="toast" role="status" aria-live="polite" aria-atomic="true" data-toast></div>
+  </body>
+</html>

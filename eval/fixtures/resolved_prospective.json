@@ -1,0 +1,21 @@
+{
+  "fixture_kind": "synthetic_offline",
+  "input": {
+    "nct_id": "NCT00000003",
+    "mode": "prospective"
+  },
+  "trial_status": "COMPLETED",
+  "evidence_bundle": [],
+  "numeric_facts": [],
+  "fake_model_output": {
+    "model_calls": 0
+  },
+  "preflight_checks": [
+    {
+      "check_name": "prospective_status",
+      "status": "failed",
+      "affected_item": "report",
+      "reason": "A completed trial cannot be framed as a prospective assessment."
+    }
+  ]
+}
