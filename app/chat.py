@@ -20,6 +20,7 @@ from app.checks import (
     check_citation_bundle_membership,
     check_numeric_fact_references,
     check_prohibited_language,
+    infer_exact_numeric_fact_ids,
 )
 from app.config import Settings
 from app.costs import summarize_usage
@@ -311,6 +312,8 @@ class ChatService:
                 )
             generated = model_result.output
 
+        generated = _attach_exact_numeric_fact_ids(generated, report)
+
         checks = [input_check, *_release_checks(generated, report)]
         if generated.answer == UNSUPPORTED_ANSWER:
             disposition = ChatDisposition.UNSUPPORTED
@@ -485,6 +488,22 @@ def _release_checks(
     checks.extend(check_numeric_fact_references([answer_item], report.numeric_facts))
     checks.extend(check_prohibited_language([answer_item]))
     return checks
+
+
+def _attach_exact_numeric_fact_ids(
+    generated: ChatAgentOutput,
+    report: AssessmentReport,
+) -> ChatAgentOutput:
+    """Deterministically restore uniquely matching fact IDs omitted by the model."""
+    if generated.answer == UNSUPPORTED_ANSWER:
+        return generated
+    inferred = infer_exact_numeric_fact_ids(generated.answer, report.numeric_facts)
+    identifiers = list(
+        dict.fromkeys([*generated.numeric_fact_ids, *inferred])
+    )[:5]
+    if identifiers == generated.numeric_fact_ids:
+        return generated
+    return generated.model_copy(update={"numeric_fact_ids": identifiers})
 
 
 def _source_links(

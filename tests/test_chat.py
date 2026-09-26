@@ -202,6 +202,56 @@ def test_unmatched_number_is_not_released() -> None:
     )
 
 
+def test_chat_restores_unique_exact_numeric_fact_ids_and_ignores_codes() -> None:
+    checked_report = report().model_copy(
+        update={
+            "numeric_facts": [
+                NumericFact(
+                    fact_id="cohort.resolved_stopped_count",
+                    label="Terminated or withdrawn studies",
+                    value=9,
+                    unit="studies",
+                    derivation="TERMINATED + WITHDRAWN",
+                ),
+                NumericFact(
+                    fact_id="cohort.records_matched",
+                    label="Matched cohort records",
+                    value=44,
+                    unit="studies",
+                    derivation="Count after deterministic cohort filters",
+                ),
+            ]
+        }
+    )
+    provider = FakeProvider(
+        {
+            "report_chat": [
+                ChatAgentOutput(
+                    answer=(
+                        "The MK-0646 precedent was included; 9 of 44 matched "
+                        "records were terminated or withdrawn."
+                    ),
+                    evidence_ids=["registry:NCT07654321:why_stopped"],
+                    numeric_fact_ids=["cohort.resolved_stopped_count"],
+                )
+            ]
+        }
+    )
+
+    response = ChatService(Settings(), provider=provider).answer(
+        report=checked_report,
+        request=ChatRequest(message="Summarize the stopped trials."),
+        turn=1,
+    )
+
+    assert response.disposition == "answered"
+    assert response.numeric_fact_ids == [
+        "cohort.resolved_stopped_count",
+        "cohort.records_matched",
+    ]
+    assert all(check.status != "failed" for check in response.checks)
+
+
 @pytest.mark.parametrize(
     ("error", "disposition", "answer", "check_name"),
     [

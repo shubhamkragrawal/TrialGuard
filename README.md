@@ -135,7 +135,7 @@ docker build --check .
 
 Current build:
 
-- 80/80 automated tests pass.
+- 82/82 automated tests pass.
 - 7/7 fixed synthetic offline release behaviors match expectations.
 - A guarded live `NCT06513364` smoke test reached full release and its
   report-grounded chat returned a checked, source-linked answer.

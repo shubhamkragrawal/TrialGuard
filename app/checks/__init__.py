@@ -8,6 +8,7 @@ from .injection import check_prompt_injection
 from .language import check_prohibited_language, validate_prohibited_language
 from .numbers import (
     check_numeric_fact_references,
+    infer_exact_numeric_fact_ids,
     validate_numeric_fact_references,
 )
 from .release import (
@@ -29,6 +30,7 @@ __all__ = [
     "check_prohibited_language",
     "check_source_passage_support",
     "determine_release_state",
+    "infer_exact_numeric_fact_ids",
     "validate_citation_bundle_membership",
     "validate_numeric_fact_references",
     "validate_prohibited_language",

@@ -12,6 +12,9 @@ NUMBER_PATTERN = re.compile(
     r"(?P<percent>\s*%)?"
 )
 PHASE_NUMBER_PATTERN = re.compile(r"\bphase\s+[1-4]\b", re.IGNORECASE)
+IDENTIFIER_NUMBER_PATTERN = re.compile(
+    r"\b(?:NCT\d{8}|[A-Z][A-Z0-9]{0,7}-\d{1,8})\b"
+)
 
 
 def check_numeric_fact_references(
@@ -82,6 +85,28 @@ def check_numeric_fact_references(
     return results
 
 
+def infer_exact_numeric_fact_ids(
+    text: str,
+    numeric_facts: Iterable[Any],
+) -> list[str]:
+    """Return fact IDs for displayed values that map to exactly one fact."""
+    facts = [
+        fact
+        for fact in numeric_facts
+        if value_of(fact, "fact_id", "id")
+    ]
+    inferred: list[str] = []
+    for token in _extract_numbers(text):
+        matches = [
+            str(value_of(fact, "fact_id", "id"))
+            for fact in facts
+            if _token_matches_fact(token, fact)
+        ]
+        if len(matches) == 1 and matches[0] not in inferred:
+            inferred.append(matches[0])
+    return inferred
+
+
 def _generated_text(item: Any) -> str:
     parts = [
         value_of(item, "question", "text", "claim"),
@@ -96,10 +121,13 @@ def _extract_numbers(text: str) -> list[dict[str, Any]]:
     phase_number_spans = [
         match.span() for match in PHASE_NUMBER_PATTERN.finditer(text)
     ]
+    identifier_number_spans = [
+        match.span() for match in IDENTIFIER_NUMBER_PATTERN.finditer(text)
+    ]
     for match in NUMBER_PATTERN.finditer(text):
         if any(
             start <= match.start() and match.end() <= end
-            for start, end in phase_number_spans
+            for start, end in (*phase_number_spans, *identifier_number_spans)
         ):
             continue
         raw_number = match.group("number").replace(",", "")
