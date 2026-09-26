@@ -8,6 +8,11 @@ release unsupported claims.
 It does **not** predict efficacy, recommend protocol changes, or make clinical,
 regulatory, or go/no-go decisions. Its output is for qualified human review.
 
+Public checked showcase:
+[shubhamkragrawal.github.io/TrialGuard](https://shubhamkragrawal.github.io/TrialGuard/).
+Visitors can use its **Find more NCT IDs** link to browse the public
+ClinicalTrials.gov search; arbitrary live reviews require the full application.
+
 ## What happens in a review
 
 1. TrialGuard accepts only an NCT ID and fetches allowlisted public registry

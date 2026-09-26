@@ -1,7 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { Presentation, PresentationFile } from "@oai/artifact-tool";
+
+const artifactToolModule =
+  process.env.ARTIFACT_TOOL_MODULE || "@oai/artifact-tool";
+const { Presentation, PresentationFile } = await import(artifactToolModule);
 
 const {
   SKILL_DIR,
@@ -600,7 +603,11 @@ function setNotes(slide, text) {
     x: 820, y: 87, w: 350, h: 28, size: 14, color: C.aqua, bold: true,
   });
   const deployment = [
-    ["PUBLIC SHOWCASE", "Static GitHub Pages"],
+    [
+      "PUBLIC SHOWCASE",
+      "Live public demo\nshubhamkragrawal.github.io/TrialGuard",
+      17,
+    ],
     ["PRODUCTION TARGET", "FastAPI on AWS App Runner with Bedrock in us-east-1"],
     ["CURRENT CONSTRAINT", "The workshop IAM role blocks App Runner provisioning"],
     ["PACKAGE STATUS", "Ready for deployment from an authorized AWS account"],
@@ -611,7 +618,7 @@ function setNotes(slide, text) {
       x: 820, y, w: 340, h: 22, size: 12, color: C.aqua, bold: true,
     });
     addText(slide, item[1], {
-      x: 820, y: y + 31, w: 365, h: 62, size: 21, color: C.white,
+      x: 820, y: y + 31, w: 365, h: 62, size: item[2] ?? 21, color: C.white,
       bold: true,
     });
     if (i < deployment.length - 1) {
@@ -628,7 +635,7 @@ function setNotes(slide, text) {
   addFooter(slide, 6, true);
   setNotes(
     slide,
-    "Source: TrialGuard Development Plan, sections 1, 3, 9, 17, and 18, plus deployment status verified 2026-09-26. The current public showcase uses static GitHub Pages because the workshop IAM role blocks App Runner provisioning. The App Runner package is ready for an authorized AWS account. Keep the intended-use boundary in the final deck."
+    "Source: TrialGuard Development Plan, sections 1, 3, 9, 17, and 18, plus deployment status verified 2026-09-26. The public showcase is live at https://shubhamkragrawal.github.io/TrialGuard/ and uses static GitHub Pages because the workshop IAM role blocks App Runner provisioning. The App Runner package is ready for an authorized AWS account. Keep the intended-use boundary in the final deck."
   );
 }
 
@@ -646,7 +653,7 @@ for (let i = 0; i < presentation.slides.items.length; i += 1) {
   );
 }
 
-const stagingDir = path.join(workspaceDir, "slides/.codex-finalizer");
+const stagingDir = path.join(workspaceDir, ".codex-finalizer");
 await fs.mkdir(stagingDir, { recursive: true });
 const candidatePath = path.join(stagingDir, "trialguard-template-candidate.pptx");
 await (await PresentationFile.exportPptx(presentation)).save(candidatePath);
